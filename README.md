@@ -1,87 +1,562 @@
-This project was bootstrapped with [Create React App](https://github.com/facebookincubator/create-react-app).
+React-bootstrap-exemplo
+=======================
 
-Below you will find some information on how to perform common tasks.<br>
-You can find the most recent version of this guide [here](https://github.com/facebookincubator/create-react-app/blob/master/packages/react-scripts/template/README.md).
+How to creat one react + react-bootstrap + lodash and library in one clean aplication with creat-react-app
 
-## Table of Contents
+#Structure of Project
+![alt tag](https://github.com/MarceloProjetos/react-bootstrap-exemplo/blob/master/images/estrutura.png)
 
-- [Updating to New Releases](#updating-to-new-releases)
-- [Sending Feedback](#sending-feedback)
+This project is an React page that accesses a "MQTT" server, that accesses the "Node-red". The Node-Red in turn accesses a MongoDB database which stores the records.
+
+#MQTT structure of Topics names
+![alt tag](https://github.com/MarceloProjetos/react-bootstrap-exemplo/blob/master/images/create topics.png)
+
+# Install environment
+
+### To setup this project we need to the free softwares below:
+
+| Software | Description |
+| -------- | ----------- |
+| [Java SE][6]  |If you have not installed, First download and install the most suitable for your system. X64 or i586. |
+| [ActiveMQ][2] | MQTT v3.1 support allowing for connections in an IoT environment.  |
+| [NodeJS][3]   | Support package npm, is the largest ecosystem of open source libraries in the world. |
+| [Node-Red][1] | Node-RED is a tool for wiring together hardware devices, APIs and online services. |
+| [MongoDB][5]  | It is a graphical tool for control together hardware devices, online services and others NPM library. |
+
+## 1-Installation NODE-JS and Python
+
+Access the site [NodeJS][3]
+
+Download the latest LTS version, follow with the default installation. In this example I used the "node-v6.9.1-x64"
+
+Now install the **phyton**. In this tutorial I used [python-2.7.10][8]
+
+Wait for the installation and restart the machine to continue.
+
+## 2- Create-react-app installation  
+
+Install it once globally:
+```
+  -npm install -g create-react-app
+```
+### Creating an App
+
+To create a new app, run:
+```
+create-react-app react-bootstrap-exemplo && cd react-bootstrap-exemplo
+npm start
+```
+Then open [http://localhost:3000/](http://localhost:3000/) to see your app.<br>
+When you’re ready to deploy to production, create a minified bundle with `npm run build`.
+
+## 3- Adding Bootstrap
+
+Install React Bootstrap and Bootstrap from NPM. React Bootstrap does not include Bootstrap CSS so this needs to be installed as well:
+
+```
+npm install react-bootstrap --save
+npm install bootstrap@3 --save
+npm install react-bootstrap-date-picker --save
+```
+
+Import Bootstrap CSS and optionally Bootstrap theme CSS in the ```src/index.js``` file:
+
+```js
+import 'bootstrap/dist/css/bootstrap.css';
+import 'bootstrap/dist/css/bootstrap-theme.css';
+```
+
+Import required React Bootstrap components within ```src/App.js``` file or your custom component files:
+
+```js
+import { Navbar, Jumbotron, Button } from 'react-bootstrap';
+```
+Now you are ready to use the imported React Bootstrap components within your component hierarchy defined in the render method.
+
+## 4- Adding mqtt, lodash and node-uuid
+
+MQTT.js is a client library for the [MQTT](http://mqtt.org/) protocol, written
+in JavaScript for node.js and the browser.
+```
+npm install mqtt --save
+```
+Node-uuid simple, fast generation of [RFC4122](http://www.ietf.org/rfc/rfc4122.txt) UUIDS.
+```
+npm install node-uuid --save
+```
+Lodash makes JavaScript easier by taking the hassle out of working with arrays,
+numbers, objects, strings, etc.
+```
+npm install lodash --save
+```
+## 5-Broker Installation "ActiveMQ" 
+
+Access the site [ActiveMQ][2]
+Look for "Downloads" and download the version **"Windows Distribution"**
+
+Unzip the file "apache-activemq-5.14.1-bin.zip" 
+In a terminal window enter the following command
+
+    .../apache-activemq-5.14.1/bin/activemq start
+
+If an error occurred, Maybe you don't have installed "JAVA SE". Download and install the [**"Java SE Development Kit"**][6].
+
+For test open a browser **FireFox** or **Chrome** e connect to port 8161 "http://127.0.0.1:8161/admin/"
+
+Password: **admin**   Login: **admin**
+
+Configuring to start ActiveMQ on Windows Boot.
+
+For systems 64 bits in a terminal window, in root permission, enter the following command
+
+    .../apache-activemq-5.13.3/bin/win64/InstallService.bat
+
+For systems 32 bits in a terminal window, in root permission, enter the following command
+
+    .../apache-activemq-5.13.3/bin/win32/InstallService.bat
+
+To verify that it is installed as a service see:
+
+    Control Panel-->Administrative tools-->Services and look for **ActiveMQ**
+   
+**Delete all of the topics in ActiveMQ on startup:**
+
+Go to configuration file "ACTIVEMQ.XML", open the file for editing on the broker element, add the following attribute: 
+
+    deleteAllMessagesOnStartup="true"
+   
+This will cause all previous topics & queues, and their pending messages to be deleted from your kaha store when you restart your broker.
+
+In my case...
+
+    <broker xmlns="http://activemq.apache.org/schema/core" brokerName="localhost" dataDirectory="${activemq.data}"  deleteAllMessagesOnStartup="true">
+
+----
+
+## 5-Node-red
+
+Run the following command in the root directory of your Node-RED install
+
+    npm install -g node-red
+    npm install -g bcryptjs
+
+Wait finish installation...
+
+Run the following command in root mode. Of the libraries installation.
+
+    npm install -g node-red-node-mongodb
+
+Run the command prompt **"node-red"**
+
+Open <http://localhost:1880>
+
+To restore a node-red flow with Ctrl-I command or the menu, "Menu > Import > Clipboard".
+
+Below you will find node-red project.
+
+###Financeiro Node-red Flow
+ ```sh
+[{"id":"7682ced4.b2797","type":"mqtt in","z":"121c01c2.e652c6","name":"","topic":"financeiro/cadastro/contas/incluir/#","qos":"0","broker":"8c91fad3.2f359","x":202.36669921875,"y":133.36663818359375,"wires":[["12dfbf40.b03bc9"]]},{"id":"12dfbf40.b03bc9","type":"function","z":"121c01c2.e652c6","name":"Recupera topico ID","func":"return [\n    {\n        id: msg.id,\n        topic: 'financeiro/cadastro/contas/incluido/' + msg.topic.split('/')[msg.topic.split('/').length - 1], //msg.payload._id,\n        payload: msg.payload\n    }\n];","outputs":"1","noerr":0,"x":471.36669921875,"y":133.36663818359375,"wires":[["81a78833.86e62","94c7a1b5.60b19"]]},{"id":"572ea40.fe662dc","type":"debug","z":"121c01c2.e652c6","name":"Incluir + ID","active":false,"console":"false","complete":"payload","x":1091.6166381835938,"y":135.11663818359375,"wires":[]},{"id":"83808054.abfb4","type":"mqtt out","z":"121c01c2.e652c6","name":"contas/carregado/","topic":"financeiro/cadastro/contas/carregado/","qos":"0","retain":"","broker":"8c91fad3.2f359","x":904.0929107666016,"y":499.09501457214355,"wires":[]},{"id":"81a78833.86e62","type":"mqtt out","z":"121c01c2.e652c6","name":"incluido/+id","topic":"","qos":"0","retain":"","broker":"8c91fad3.2f359","x":697.8959655761719,"y":133.64584350585938,"wires":[]},{"id":"44ae7300.d74534","type":"function","z":"121c01c2.e652c6","name":"mudar 1 socio apenas","func":"msg.query = { _id: 'AplanadoraN3' }\nmsg.payload = {\n $set: {\n \"parametros.encoder.fator\": 2225\n }\n}\n\nreturn msg;","outputs":1,"noerr":0,"x":1696.0776901245117,"y":1986.1056880950928,"wires":[["f187b2b6.b6a63"]]},{"id":"f187b2b6.b6a63","type":"mongodb out","z":"121c01c2.e652c6","mongodb":"1ba03f37.e3ec11","name":"update only one","collection":"socios","payonly":true,"upsert":false,"multi":false,"operation":"update","x":1956.0776748657227,"y":1986.5056819915771,"wires":[]},{"id":"2ae16da8.2847ea","type":"inject","z":"121c01c2.e652c6","name":"String vazia","topic":"","payload":"","payloadType":"str","repeat":"","crontab":"","once":false,"x":1398.110466003418,"y":2205.9500455856323,"wires":[["be2e0093.f34b"]]},{"id":"c32f3c3c.1db5c","type":"mongodb in","z":"121c01c2.e652c6","mongodb":"1ba03f37.e3ec11","name":"consulta","collection":"contas","operation":"find","x":1917.07763671875,"y":2206.3055419921875,"wires":[["6ce4b274.6a857c"]]},{"id":"6ce4b274.6a857c","type":"debug","z":"121c01c2.e652c6","name":"resposta do MongoDB","active":true,"console":"false","complete":"payload","x":2201.188678741455,"y":2206.4166975021362,"wires":[]},{"id":"d3026044.f1e3a","type":"mongodb out","z":"121c01c2.e652c6","mongodb":"1ba03f37.e3ec11","name":"APAGAR TODA A COLLECTION cadastroErros","collection":"cadastroErros","payonly":true,"upsert":false,"multi":false,"operation":"delete","x":1816.8551559448242,"y":1609.3277130126953,"wires":[]},{"id":"967dd0c8.0294f8","type":"inject","z":"121c01c2.e652c6","name":"LIMPAR coleção cadastroErros","topic":"","payload":"{}","payloadType":"json","repeat":"","crontab":"","once":false,"x":1459.6087036132812,"y":1610.054768562317,"wires":[["d3026044.f1e3a"]]},{"id":"ed222d8d.ef127","type":"inject","z":"121c01c2.e652c6","name":"Editar socios","topic":"","payload":"","payloadType":"str","repeat":"","crontab":"","once":false,"x":1398.9112281799316,"y":1985.7723846435547,"wires":[["44ae7300.d74534"]]},{"id":"f2646d64.451328","type":"function","z":"121c01c2.e652c6","name":"indiceErros +1","func":"msg.query = { _id: 'AplanadoraN3' }\nmsg.payload = {\n $inc: {\n \"os.produzido\": 1\n }\n}\n\nreturn msg;","outputs":1,"noerr":0,"x":1729.2997360229492,"y":2112.883364677429,"wires":[["3c3923c3.dcd8dc"]]},{"id":"3c3923c3.dcd8dc","type":"mongodb out","z":"121c01c2.e652c6","mongodb":"1ba03f37.e3ec11","name":"salvar","collection":"indiceErros","payonly":true,"upsert":false,"multi":false,"operation":"update","x":1927.2997207641602,"y":2113.2833585739136,"wires":[]},{"id":"1a69f22c.9b41e6","type":"inject","z":"121c01c2.e652c6","name":"$inc: incrementa","topic":"","payload":"","payloadType":"str","repeat":"","crontab":"","once":false,"x":1406.1332740783691,"y":2112.550061225891,"wires":[["f2646d64.451328","cdd6978.b585ee8"]]},{"id":"be2e0093.f34b","type":"function","z":"121c01c2.e652c6","name":"Paginação ","func":"msg.limit = 5;\nmsg.skip = 0;\nreturn msg;","outputs":1,"noerr":0,"x":1715.5219898223877,"y":2206.3648252487183,"wires":[["c32f3c3c.1db5c"]]},{"id":"e5ec74d.d132f08","type":"comment","z":"121c01c2.e652c6","name":"Paginação e consulta MongoDB","info":"#Resultados de paginação usando skip e limit\n\nMuitas vezes, ao lidar com conjuntos de resultados de dados, \nsó queremos recuperar um subconjunto por vez, talvez para fornecer \nresultados por página da Web. Em MySQL, em geral fazemos isso \nusando a palavra-chave LIMIT. \nÉ fácil replicar essa funcionalidade no MongoDB \nusando msg.skip e msg.limit. \nPara retornar os primeiros cinco documentos na \ncoleção, podemos executar a seguinte operação:\n> msg.limit = 5;<\n\nPara pular resultados, use o seguinte comando:\n\n> msg.skip = 5;<\n\nCom ele é possível iguinorar os primeiros cinco\nregistros. ","x":1434.2998237609863,"y":2170.216664791107,"wires":[]},{"id":"5db31b3.d297764","type":"inject","z":"121c01c2.e652c6","name":"Criar estrutura cadastroErros","topic":"","payload":"","payloadType":"date","repeat":"","crontab":"","once":false,"x":1449.7440872192383,"y":1852.633430480957,"wires":[["a2c74153.fb8b48"]]},{"id":"520a8e88.6cd96","type":"mongodb out","z":"121c01c2.e652c6","mongodb":"1ba03f37.e3ec11","name":"salvar","collection":"cadastroErros","payonly":true,"upsert":false,"multi":false,"operation":"store","x":1942.1019744873047,"y":1852.6842622756958,"wires":[]},{"id":"a2c74153.fb8b48","type":"function","z":"121c01c2.e652c6","name":"collection inicial cadastroErros","func":"msg.payload = {\n\t\"_id\": 1,\n\t\"log_mesagens\": {\n\t}\n}\n\nreturn msg;","outputs":1,"noerr":0,"x":1725.1109619140625,"y":1852.7890491485596,"wires":[["520a8e88.6cd96"]]},{"id":"94ee7df0.7d2bf","type":"mongodb in","z":"121c01c2.e652c6","mongodb":"1ba03f37.e3ec11","name":"consulta","collection":"contas","operation":"find","x":1818.966344833374,"y":2286.8000688552856,"wires":[["e0e75b6.7a79528"]]},{"id":"fdb316d6.40a7f8","type":"function","z":"121c01c2.e652c6","name":"lê apenas uma conta","func":"// Para ler um registro primeiro especificar \"_id\" no payload\nmsg.payload = { \"_id\": \"AplanadoraN3\" }\n\n// No parametro projection 1 ou zero significa ler ou inguinorar resultado\nmsg.projection = { \"parametros.encoder.fator\": 1 }\n\n// Ler 1 valor\nmsg.limit = 1;\n\n// Pular 0 resultados\nmsg.skip = 0;\n\nreturn msg;","outputs":1,"noerr":0,"x":1606.0774154663086,"y":2286.6370992660522,"wires":[["94ee7df0.7d2bf"]]},{"id":"70f73b01.f2ce4c","type":"inject","z":"121c01c2.e652c6","name":"","topic":"","payload":"","payloadType":"date","repeat":"","crontab":"","once":false,"x":1386.0913257598877,"y":2286.3000497817993,"wires":[["fdb316d6.40a7f8"]]},{"id":"e0e75b6.7a79528","type":"function","z":"121c01c2.e652c6","name":"parse(contas)","func":"msg.payload=msg.payload[0].parametros.encoder.fator;\nreturn msg;","outputs":1,"noerr":0,"x":1992.1331615447998,"y":2287.2167682647705,"wires":[["1c544383.04b18c"]]},{"id":"1c544383.04b18c","type":"debug","z":"121c01c2.e652c6","name":"ler conta x","active":true,"console":"false","complete":"payload","x":2208.4665813446045,"y":2287.216649055481,"wires":[]},{"id":"69563f09.b28dc8","type":"comment","z":"121c01c2.e652c6","name":"Lê apenas um valor","info":"#Resultados de paginação usando skip e limit\n\nMuitas vezes, ao lidar com conjuntos de resultados de dados, \nsó queremos recuperar um subconjunto por vez, talvez para fornecer \nresultados por página da Web. Em MySQL, em geral fazemos isso \nusando a palavra-chave LIMIT. \nÉ fácil replicar essa funcionalidade no MongoDB \nusando msg.skip e msg.limit. \nPara retornar os primeiros cinco documentos na \ncoleção, podemos executar a seguinte operação:\n> msg.limit = 5;<\n\nPara pular resultados, use o seguinte comando:\n\n> msg.skip = 5;<\n\nCom ele é possível iguinorar os primeiros cinco\nregistros. ","x":1391.2993774414062,"y":2251.216709136963,"wires":[]},{"id":"cdd6978.b585ee8","type":"function","z":"121c01c2.e652c6","name":"Delay 50ms","func":"setTimeout(function() {\n node.send(msg);\n}, 50);\nreturn null;","outputs":1,"noerr":0,"x":1718.6331405639648,"y":2148.327651977539,"wires":[["be2e0093.f34b"]]},{"id":"1d14800b.2f08d","type":"comment","z":"121c01c2.e652c6","name":"Contador Produzidos ++ ","info":"#Resultados de paginação usando skip e limit\n\nMuitas vezes, ao lidar com conjuntos de resultados de dados, \nsó queremos recuperar um subconjunto por vez, talvez para fornecer \nresultados por página da Web. Em MySQL, em geral fazemos isso \nusando a palavra-chave LIMIT. \nÉ fácil replicar essa funcionalidade no MongoDB \nusando msg.skip e msg.limit. \nPara retornar os primeiros cinco documentos na \ncoleção, podemos executar a seguinte operação:\n> msg.limit = 5;<\n\nPara pular resultados, use o seguinte comando:\n\n> msg.skip = 5;<\n\nCom ele é possível iguinorar os primeiros cinco\nregistros. ","x":1411.29931640625,"y":2074.216621398926,"wires":[]},{"id":"d3f89ac0.12fba8","type":"comment","z":"121c01c2.e652c6","name":"Edita apenas 1 registro do banco com $set","info":"#Resultados de paginação usando skip e limit\n\nMuitas vezes, ao lidar com conjuntos de resultados de dados, \nsó queremos recuperar um subconjunto por vez, talvez para fornecer \nresultados por página da Web. Em MySQL, em geral fazemos isso \nusando a palavra-chave LIMIT. \nÉ fácil replicar essa funcionalidade no MongoDB \nusando msg.skip e msg.limit. \nPara retornar os primeiros cinco documentos na \ncoleção, podemos executar a seguinte operação:\n> msg.limit = 5;<\n\nPara pular resultados, use o seguinte comando:\n\n> msg.skip = 5;<\n\nCom ele é possível iguinorar os primeiros cinco\nregistros. ","x":1464.077247619629,"y":1947.5500183105469,"wires":[]},{"id":"c8a29805.b6bb38","type":"comment","z":"121c01c2.e652c6","name":"2- Cria estrutura inicial das coleções","info":"#Resultados de paginação usando skip e limit\n\nMuitas vezes, ao lidar com conjuntos de resultados de dados, \nsó queremos recuperar um subconjunto por vez, talvez para fornecer \nresultados por página da Web. Em MySQL, em geral fazemos isso \nusando a palavra-chave LIMIT. \nÉ fácil replicar essa funcionalidade no MongoDB \nusando msg.skip e msg.limit. \nPara retornar os primeiros cinco documentos na \ncoleção, podemos executar a seguinte operação:\n> msg.limit = 5;<\n\nPara pular resultados, use o seguinte comando:\n\n> msg.skip = 5;<\n\nCom ele é possível iguinorar os primeiros cinco\nregistros. ","x":1444.6328125,"y":1707.883355140686,"wires":[]},{"id":"1414b9c2.a6a716","type":"comment","z":"121c01c2.e652c6","name":"1- Apagar Cuidado","info":"#Resultados de paginação usando skip e limit\n\nMuitas vezes, ao lidar com conjuntos de resultados de dados, \nsó queremos recuperar um subconjunto por vez, talvez para fornecer \nresultados por página da Web. Em MySQL, em geral fazemos isso \nusando a palavra-chave LIMIT. \nÉ fácil replicar essa funcionalidade no MongoDB \nusando msg.skip e msg.limit. \nPara retornar os primeiros cinco documentos na \ncoleção, podemos executar a seguinte operação:\n> msg.limit = 5;<\n\nPara pular resultados, use o seguinte comando:\n\n> msg.skip = 5;<\n\nCom ele é possível iguinorar os primeiros cinco\nregistros. ","x":1396.1882400512695,"y":1469.1055097579956,"wires":[]},{"id":"5016c318.c2149c","type":"mongodb out","z":"121c01c2.e652c6","mongodb":"1ba03f37.e3ec11","name":"APAGAR TODA A COLLECTION contas","collection":"contas","payonly":true,"upsert":false,"multi":false,"operation":"delete","x":1796.2994003295898,"y":1561.105484008789,"wires":[]},{"id":"5c88fdd8.1acdac","type":"inject","z":"121c01c2.e652c6","name":"LIMPAR coleção contas","topic":"","payload":"{}","payloadType":"json","repeat":"","crontab":"","once":false,"x":1429.941551208496,"y":1561.0546875,"wires":[["5016c318.c2149c"]]},{"id":"ba044038.ba9fa8","type":"inject","z":"121c01c2.e652c6","name":"Criar estrutura indice erros","topic":"","payload":"","payloadType":"date","repeat":"","crontab":"","once":false,"x":1439.2660827636719,"y":1902.1501331329346,"wires":[["da3d3acc.a2778"]]},{"id":"70911be6.65ec7c","type":"mongodb out","z":"121c01c2.e652c6","mongodb":"1ba03f37.e3ec11","name":"salvar","collection":"indiceErros","payonly":true,"upsert":false,"multi":true,"operation":"store","x":1942.1794624328613,"y":1901.645502090454,"wires":[]},{"id":"da3d3acc.a2778","type":"function","z":"121c01c2.e652c6","name":"collection inicial indice erros","func":"msg.payload = {\n\t\"_id\": \"indice\",\n\t\"indice_mesagens\": 0\n}\n\nreturn msg;","outputs":1,"noerr":0,"x":1714.632957458496,"y":1901.9723644256592,"wires":[["70911be6.65ec7c"]]},{"id":"60ab52aa.e6af4c","type":"inject","z":"121c01c2.e652c6","name":"LIMPAR coleção indice erros","topic":"","payload":"{}","payloadType":"json","repeat":"","crontab":"","once":false,"x":1449.7068710327148,"y":1657.9946022033691,"wires":[["1ee86819.31d6b"]]},{"id":"1ee86819.31d6b","type":"mongodb out","z":"121c01c2.e652c6","mongodb":"1ba03f37.e3ec11","name":"APAGAR TODA A COLLECTION indice erros","collection":"indiceErros","payonly":true,"upsert":false,"multi":false,"operation":"delete","x":1808.7068710327148,"y":1657.6612281799316,"wires":[]},{"id":"a6730d6d.bd0b98","type":"comment","z":"121c01c2.e652c6","name":"Consulta MongoDB por string","info":"$options => i for case insensitive search\n\nStart with string\n\ndb.collection.find({zip:{'$regex' : '^string', '$options' : 'i'}})\nEnd with string\n\ndb.collection.find({zip:{'$regex' : 'string$', '$options' : 'i'}})\nContains string\n\ndb.collection.find({zip:{'$regex' : 'string', '$options' : 'i'}})\nDoesn't Contains string\n\ndb.collection.find({zip:{'$regex' : '^((?!string).)*$', '$options' : 'i'}})\nKeep this as a bookmark, and a reference for any other alterations you may need. http://www.cheatography.com/davechild/cheat-sheets/regular-expressions/","x":1883.782730102539,"y":1408.9332885742188,"wires":[]},{"id":"755700d0.fcf13","type":"function","z":"121c01c2.e652c6","name":"Exemplo de consulta","func":"msg.limit = parseInt(msg.req.query.size) || 10;\nmsg.skip = ((parseInt(msg.req.query.page) || 1) - 1) * (parseInt(msg.req.query.page) || 1);\nmsg.payload = {nome: {'$regex' : msg.payload.nome, '$options' : 'i'}}\nreturn msg;","outputs":1,"noerr":0,"x":1861.560546875,"y":1371.1556396484375,"wires":[[]]},{"id":"45050a35.b86a3c","type":"http response","z":"121c01c2.e652c6","name":"","x":852.0000076293945,"y":753.2333917617798,"wires":[]},{"id":"771652d0.cbdb84","type":"http in","z":"121c01c2.e652c6","name":"Index","url":"/","method":"get","swaggerDoc":"","x":105.44436518351222,"y":754.3444537056816,"wires":[["44f20f94.f11c2"]]},{"id":"44f20f94.f11c2","type":"file in","z":"121c01c2.e652c6","name":"index.HTML","filename":"C:/Desenvolvimento/git/React/react-bootstrap-exemplo/build/index.html","format":"utf8","x":493.55548095703125,"y":754.45556640625,"wires":[["8db30837.985d4"]]},{"id":"7861393f.592d6","type":"http response","z":"121c01c2.e652c6","name":"","x":856.4444936116543,"y":874.9000406265259,"wires":[]},{"id":"69327f65.c3f428","type":"function","z":"121c01c2.e652c6","name":"Text/CSS","func":"msg.headers = { \"Content-type\" : \"text/css\" }\n \nreturn msg;","outputs":1,"noerr":0,"x":694.9999046325684,"y":874.788893699646,"wires":[["7861393f.592d6"]]},{"id":"fd3797c0.8cc5c","type":"comment","z":"121c01c2.e652c6","name":"HTML","info":"","x":104.99999237060547,"y":718.2333669662476,"wires":[]},{"id":"c281a342.a230d","type":"comment","z":"121c01c2.e652c6","name":"CSS folder","info":"","x":115.8888053894043,"y":838.3446264266968,"wires":[]},{"id":"65b4a503.cbdf94","type":"comment","z":"121c01c2.e652c6","name":"JAVASCRIPT folder","info":"","x":145.33330535888672,"y":917.789140701294,"wires":[]},{"id":"e19ac9f.d6ad4b8","type":"http response","z":"121c01c2.e652c6","name":"","x":856.4444554646816,"y":955.3444604873657,"wires":[]},{"id":"22de03c2.f8a3fc","type":"http in","z":"121c01c2.e652c6","name":"Scripts","url":"/static/js/:file","method":"get","swaggerDoc":"","x":105.88881301879883,"y":955.4555224312676,"wires":[["846ae3d.f9cbd2"]]},{"id":"6ba887dc.f7ee08","type":"comment","z":"121c01c2.e652c6","name":"media folder","info":"","x":125.1109848022461,"y":1004.4555387496948,"wires":[]},{"id":"c12f668a.6e3ca","type":"http response","z":"121c01c2.e652c6","name":"","x":855.6666844685878,"y":1039.7890634536743,"wires":[]},{"id":"64ec1adb.3459ac","type":"http in","z":"121c01c2.e652c6","name":"fonts","url":"/static/media/:file","method":"get","swaggerDoc":"","x":105.11104202270508,"y":1039.9001253975762,"wires":[["626b65d9.c1476c"]]},{"id":"f755189d.74271","type":"function","z":"121c01c2.e652c6","name":"webfont","func":"msg.headers = { \"Content-type\" : \"font/opentype\" }\n \nreturn msg;","outputs":1,"noerr":0,"x":696.8888359069824,"y":1039.6779508590698,"wires":[["c12f668a.6e3ca"]]},{"id":"8db30837.985d4","type":"function","z":"121c01c2.e652c6","name":"Text/HTML","func":"msg.headers = { \"Content-type\" : \"text/html\" }\n\nreturn msg;","outputs":1,"noerr":0,"x":703.8332595825195,"y":753.2545404434204,"wires":[["45050a35.b86a3c"]]},{"id":"1f6a9cd.33f20e3","type":"mongodb out","z":"121c01c2.e652c6","mongodb":"1ba03f37.e3ec11","name":"APAGAR TODA A COLLECTION socios","collection":"socios","payonly":true,"upsert":false,"multi":false,"operation":"delete","x":1795.4048309326172,"y":1512.657214164734,"wires":[]},{"id":"4d2ced3a.88edfc","type":"inject","z":"121c01c2.e652c6","name":"LIMPAR coleção socios","topic":"","payload":"{}","payloadType":"json","repeat":"","crontab":"","once":false,"x":1429.0469818115234,"y":1512.6064176559448,"wires":[["1f6a9cd.33f20e3"]]},{"id":"ef2b2f16.3bbfc8","type":"inject","z":"121c01c2.e652c6","name":"Criar estrutura socios","topic":"","payload":"","payloadType":"date","repeat":"","crontab":"","once":false,"x":1428.8334197998047,"y":1755.300036430359,"wires":[["cd7da560.aece"]]},{"id":"47d5b4e3.ef65cc","type":"mongodb out","z":"121c01c2.e652c6","mongodb":"1ba03f37.e3ec11","name":"salvar","collection":"socios","payonly":true,"upsert":false,"multi":false,"operation":"store","x":1940.191017150879,"y":1754.7952556610107,"wires":[]},{"id":"cd7da560.aece","type":"function","z":"121c01c2.e652c6","name":"collection inicial socios","func":"msg.payload = \n{\n\t\"_id\": \"cdd2f034-3ec9-4d8b-a8c4-b67af29ccc39\",\n\t\"selecionada\": false,\n\t\"banco\": \"NOSSA CAIXA\",\n\t\"conta\": \"00100020003-6\",\n\t\"agencia\": 1653,\n\t\"descricao\": \"Primeiro conta\"\n}\nreturn msg;","outputs":1,"noerr":0,"x":1695.2000045776367,"y":1754.9000425338745,"wires":[["47d5b4e3.ef65cc"]]},{"id":"13703ef7.e05651","type":"function","z":"121c01c2.e652c6","name":"mudar 1 conta apenas","func":"msg.query = { _id: 'AplanadoraN3' }\nmsg.payload = {\n $set: {\n \"parametros.encoder.fator\": 2225\n }\n}\n\nreturn msg;","outputs":1,"noerr":0,"x":1696.5476531982422,"y":2033.442858695984,"wires":[["799b44a4.371404"]]},{"id":"799b44a4.371404","type":"mongodb out","z":"121c01c2.e652c6","mongodb":"1ba03f37.e3ec11","name":"update only one","collection":"contas","payonly":true,"upsert":false,"multi":false,"operation":"update","x":1956.5476379394531,"y":2033.8428525924683,"wires":[]},{"id":"e95fff65.de9758","type":"inject","z":"121c01c2.e652c6","name":"Editar Conta","topic":"","payload":"","payloadType":"str","repeat":"","crontab":"","once":false,"x":1399.381191253662,"y":2033.1095552444458,"wires":[["13703ef7.e05651"]]},{"id":"3f2c2d9e.bf3c12","type":"mongodb in","z":"121c01c2.e652c6","mongodb":"1ba03f37.e3ec11","name":"consulta","collection":"socios","operation":"find","x":1818.8334197998047,"y":2338.0858030319214,"wires":[["57d3a69f.ce003"]]},{"id":"a47acbce.6461","type":"function","z":"121c01c2.e652c6","name":"lê apenas um socio","func":"// Para ler um registro primeiro especificar \"_id\" no payload\nmsg.payload = { \"_id\": \"AplanadoraN3\" }\n\n// No parametro projection 1 ou zero significa ler ou inguinorar resultado\nmsg.projection = { \"parametros.encoder.fator\": 1 }\n\n// Ler 1 valor\nmsg.limit = 1;\n\n// Pular 0 resultados\nmsg.skip = 0;\n\nreturn msg;","outputs":1,"noerr":0,"x":1595.9444904327393,"y":2337.922833442688,"wires":[["3f2c2d9e.bf3c12"]]},{"id":"15471534.58b6d3","type":"inject","z":"121c01c2.e652c6","name":"","topic":"","payload":"","payloadType":"date","repeat":"","crontab":"","once":false,"x":1385.9584007263184,"y":2337.585783958435,"wires":[["a47acbce.6461"]]},{"id":"57d3a69f.ce003","type":"function","z":"121c01c2.e652c6","name":"parse(socios)","func":"msg.payload=msg.payload[0].parametros.encoder.fator;\nreturn msg;","outputs":1,"noerr":0,"x":1992.0002365112305,"y":2338.5025024414062,"wires":[["56e1300f.7bb228"]]},{"id":"56e1300f.7bb228","type":"debug","z":"121c01c2.e652c6","name":"ler socios x","active":true,"console":"false","complete":"payload","x":2208.333656311035,"y":2338.5023832321167,"wires":[]},{"id":"72528bb3.c1a874","type":"mqtt in","z":"121c01c2.e652c6","name":"","topic":"financeiro/cadastro/contas/carregar/","qos":"0","broker":"8c91fad3.2f359","x":197.89435577392578,"y":498.40551948547363,"wires":[["cd6e3d75.575278"]]},{"id":"8da4fba5.386d6","type":"mongodb out","z":"121c01c2.e652c6","mongodb":"1ba03f37.e3ec11","name":"salvar conta","collection":"contas","payonly":true,"upsert":false,"multi":false,"operation":"store","x":1092.5719165802002,"y":193.1055393218994,"wires":[]},{"id":"94c7a1b5.60b19","type":"function","z":"121c01c2.e652c6","name":"carrega 20 contas","func":"msg.limit = parseInt(msg.payload.per_page) || 20;\nmsg.skip = ((msg.payload.page || 1) - 1) * (msg.payload.per_page || 1);\nreturn msg;","outputs":1,"noerr":0,"x":716.0165100097656,"y":192.16665649414062,"wires":[["b542c4b8.53737"]]},{"id":"b542c4b8.53737","type":"json","z":"121c01c2.e652c6","name":"","x":909.4498596191406,"y":192.64999389648438,"wires":[["8da4fba5.386d6","2a259b4f.f4d534","572ea40.fe662dc"]]},{"id":"e61d95fe.6546e","type":"mqtt in","z":"121c01c2.e652c6","name":"","topic":"financeiro/cadastro/contas/alterar/#","qos":"0","broker":"8c91fad3.2f359","x":199.2332763671875,"y":257.12226486206055,"wires":[["a0758df8.8447b","d5973da7.5f1478"]]},{"id":"a0758df8.8447b","type":"function","z":"121c01c2.e652c6","name":"Recupera topico ID","func":"return [\n    {\n        id: msg.id,\n        topic: 'financeiro/cadastro/contas/alterado/' + msg.topic.split('/')[msg.topic.split('/').length - 1], //msg.payload._id,\n        payload: msg.payload\n    }\n];","outputs":"1","noerr":0,"x":473.0110321044922,"y":257.1222724914551,"wires":[["1725919b.594b8e","94c7a1b5.60b19","9c64f448.9ebcb8"]]},{"id":"1725919b.594b8e","type":"mqtt out","z":"121c01c2.e652c6","name":"alterado/+id","topic":"","qos":"0","retain":"","broker":"8c91fad3.2f359","x":696.0959053039551,"y":256.95704460144043,"wires":[]},{"id":"dba182aa.a02ac8","type":"mongodb in","z":"121c01c2.e652c6","mongodb":"1ba03f37.e3ec11","name":"Carrega lista","collection":"contas","operation":"find","x":695.3887600368926,"y":499.4444565243191,"wires":[["83808054.abfb4","90aaeb73.435fa"]]},{"id":"cd6e3d75.575278","type":"function","z":"121c01c2.e652c6","name":"carrega 20 contas","func":"msg.limit = parseInt(msg.payload.per_page) || 20;\nmsg.skip = ((msg.payload.page || 1) - 1) * (msg.payload.per_page || 1);\nmsg.payload = \"carregar\";\nreturn msg;","outputs":1,"noerr":0,"x":479.37024688720703,"y":499.57411766052246,"wires":[["dba182aa.a02ac8","c23d7952.229498"]]},{"id":"68bc63a3.f8cbac","type":"comment","z":"121c01c2.e652c6","name":"Adiciona um registro","info":"$options => i for case insensitive search\n\nStart with string\n\ndb.collection.find({zip:{'$regex' : '^string', '$options' : 'i'}})\nEnd with string\n\ndb.collection.find({zip:{'$regex' : 'string$', '$options' : 'i'}})\nContains string\n\ndb.collection.find({zip:{'$regex' : 'string', '$options' : 'i'}})\nDoesn't Contains string\n\ndb.collection.find({zip:{'$regex' : '^((?!string).)*$', '$options' : 'i'}})\nKeep this as a bookmark, and a reference for any other alterations you may need. http://www.cheatography.com/davechild/cheat-sheets/regular-expressions/","x":210.57408142089844,"y":92.57408714294434,"wires":[]},{"id":"c3a0c9da.18962","type":"comment","z":"121c01c2.e652c6","name":"Atualiza pagina","info":"$options => i for case insensitive search\n\nStart with string\n\ndb.collection.find({zip:{'$regex' : '^string', '$options' : 'i'}})\nEnd with string\n\ndb.collection.find({zip:{'$regex' : 'string$', '$options' : 'i'}})\nContains string\n\ndb.collection.find({zip:{'$regex' : 'string', '$options' : 'i'}})\nDoesn't Contains string\n\ndb.collection.find({zip:{'$regex' : '^((?!string).)*$', '$options' : 'i'}})\nKeep this as a bookmark, and a reference for any other alterations you may need. http://www.cheatography.com/davechild/cheat-sheets/regular-expressions/","x":194.9075050354004,"y":460.46303367614746,"wires":[]},{"id":"2a259b4f.f4d534","type":"function","z":"121c01c2.e652c6","name":"Delay 100ms","func":"setTimeout(function() {\n node.send(msg);\n}, 100);\nreturn null;","outputs":1,"noerr":0,"x":1092.1482543945312,"y":250.35186767578125,"wires":[["4aaad440.6c36a4"]]},{"id":"4aaad440.6c36a4","type":"link out","z":"121c01c2.e652c6","name":"","links":["4b738820.c9a9d"],"x":1215.1666355133057,"y":250.00003623962402,"wires":[]},{"id":"4b738820.c9a9d","type":"link in","z":"121c01c2.e652c6","name":"Atualiza Registro","links":["4aaad440.6c36a4"],"x":317.610915184021,"y":458.925931930542,"wires":[["cd6e3d75.575278"]]},{"id":"a12fe2ea.d3a968","type":"comment","z":"121c01c2.e652c6","name":"Modifica um registro","info":"$options => i for case insensitive search\n\nStart with string\n\ndb.collection.find({zip:{'$regex' : '^string', '$options' : 'i'}})\nEnd with string\n\ndb.collection.find({zip:{'$regex' : 'string$', '$options' : 'i'}})\nContains string\n\ndb.collection.find({zip:{'$regex' : 'string', '$options' : 'i'}})\nDoesn't Contains string\n\ndb.collection.find({zip:{'$regex' : '^((?!string).)*$', '$options' : 'i'}})\nKeep this as a bookmark, and a reference for any other alterations you may need. http://www.cheatography.com/davechild/cheat-sheets/regular-expressions/","x":210.12957000732422,"y":217.01860809326172,"wires":[]},{"id":"5130ad31.cb2094","type":"inject","z":"121c01c2.e652c6","name":"Carregar manual","topic":"","payload":"","payloadType":"date","repeat":"","crontab":"","once":false,"x":254.8123779296875,"y":549.3958740234375,"wires":[["cd6e3d75.575278"]]},{"id":"90aaeb73.435fa","type":"debug","z":"121c01c2.e652c6","name":"Resposta","active":false,"console":"false","complete":"payload","x":871.1457939147949,"y":454.6806125640869,"wires":[]},{"id":"c23d7952.229498","type":"debug","z":"121c01c2.e652c6","name":"comando para o mongo","active":false,"console":"false","complete":"payload","x":737.4999389648438,"y":553.3958740234375,"wires":[]},{"id":"449cf7f5.b48cc","type":"mqtt in","z":"121c01c2.e652c6","name":"","topic":"financeiro/cadastro/contas/excluir/#","qos":"0","broker":"8c91fad3.2f359","x":199.01852416992188,"y":345.1852111816406,"wires":[["b7d4e611.3966e","2ee105e4.bef47a"]]},{"id":"b16401c4.b03d6","type":"mongodb out","z":"121c01c2.e652c6","mongodb":"1ba03f37.e3ec11","name":"deletar conta","collection":"contas","payonly":true,"upsert":false,"multi":false,"operation":"delete","x":1091.573974609375,"y":345.40740966796875,"wires":[]},{"id":"56040e40.12b88","type":"function","z":"121c01c2.e652c6","name":"Indica o ID","func":"msg.payload = {\n\"_id\":msg.payload._id\n}\nreturn msg;","outputs":1,"noerr":0,"x":881.907470703125,"y":345.4074401855469,"wires":[["d1308727.fff16","b16401c4.b03d6","2a259b4f.f4d534"]]},{"id":"d1308727.fff16","type":"debug","z":"121c01c2.e652c6","name":"","active":false,"console":"false","complete":"false","x":1092.1666870117188,"y":408.6481628417969,"wires":[]},{"id":"92e1db7e.f90ca8","type":"mqtt out","z":"121c01c2.e652c6","name":"excluir/+id","topic":"","qos":"0","retain":"","broker":"8c91fad3.2f359","x":684.185302734375,"y":385.7963562011719,"wires":[]},{"id":"b7d4e611.3966e","type":"function","z":"121c01c2.e652c6","name":"Recupera topico ID","func":"return [\n    {\n        id: msg.id,\n        topic: 'financeiro/cadastro/contas/excluido/' + msg.topic.split('/')[msg.topic.split('/').length - 1], //msg.payload._id,\n        payload: msg.payload\n    }\n];","outputs":"1","noerr":0,"x":473.4074401855469,"y":345.79632568359375,"wires":[["92e1db7e.f90ca8","c5db1289.67c098","b84d12bd.bff9e"]]},{"id":"c5db1289.67c098","type":"json","z":"121c01c2.e652c6","name":"","x":673.9000244140625,"y":346.1166687011719,"wires":[["56040e40.12b88"]]},{"id":"b84d12bd.bff9e","type":"debug","z":"121c01c2.e652c6","name":"excluido","active":false,"console":"false","complete":"true","x":682.449951171875,"y":440.6166687011719,"wires":[]},{"id":"2ee105e4.bef47a","type":"debug","z":"121c01c2.e652c6","name":"excluir","active":false,"console":"false","complete":"true","x":432.1166687011719,"y":387.1166687011719,"wires":[]},{"id":"d5973da7.5f1478","type":"debug","z":"121c01c2.e652c6","name":"alterar","active":false,"console":"false","complete":"true","x":438.1166687011719,"y":299.1166687011719,"wires":[]},{"id":"9c64f448.9ebcb8","type":"debug","z":"121c01c2.e652c6","name":"alterado","active":false,"console":"false","complete":"true","x":685.11669921875,"y":305.1166687011719,"wires":[]},{"id":"331b222f.a0f616","type":"http in","z":"121c01c2.e652c6","name":"CSS Files","url":"/static/css/:file","method":"get","swaggerDoc":"","x":116.79630661010742,"y":874.5186709298027,"wires":[["7f318264.d57e0c"]]},{"id":"7f318264.d57e0c","type":"function","z":"121c01c2.e652c6","name":"files","func":"msg.filename = 'C:\\\\Desenvolvimento\\\\git\\\\React\\\\react-bootstrap-exemplo\\\\build\\\\static\\\\css\\\\' + msg.req.params.file;\nreturn msg;","outputs":1,"noerr":0,"x":349.01855087280273,"y":874.2965029610527,"wires":[["3589d98a.81ec36"]]},{"id":"3589d98a.81ec36","type":"file in","z":"121c01c2.e652c6","name":"","filename":"","format":"","x":515.2407875061035,"y":874.4076708687676,"wires":[["69327f65.c3f428","f768b79b.e63a08"]]},{"id":"846ae3d.f9cbd2","type":"function","z":"121c01c2.e652c6","name":"files","func":"msg.filename = 'C:\\\\Desenvolvimento\\\\git\\\\React\\\\react-bootstrap-exemplo\\\\build\\\\static\\\\js\\\\' + msg.req.params.file;\nreturn msg;","outputs":1,"noerr":0,"x":349.01855087280273,"y":956.8520449532402,"wires":[["78d3db36.43df5c"]]},{"id":"626b65d9.c1476c","type":"function","z":"121c01c2.e652c6","name":"files","func":"msg.filename = 'C:\\\\Desenvolvimento\\\\git\\\\React\\\\react-bootstrap-exemplo\\\\build\\\\static\\\\media\\\\' + msg.req.params.file;\nreturn msg;","outputs":1,"noerr":0,"x":352.35185623168945,"y":1039.629743470086,"wires":[["3b28f840.1e5948"]]},{"id":"78d3db36.43df5c","type":"file in","z":"121c01c2.e652c6","name":"","filename":"","format":"","x":515.6852378845215,"y":956.2965029610527,"wires":[["1a1291bd.59b546","e19ac9f.d6ad4b8"]]},{"id":"1a1291bd.59b546","type":"debug","z":"121c01c2.e652c6","name":"FIles JS","active":false,"console":"false","complete":"filename","x":708.5741424560547,"y":997.0743330849541,"wires":[]},{"id":"3b28f840.1e5948","type":"file in","z":"121c01c2.e652c6","name":"","filename":"","format":"","x":517.9074058532715,"y":1039.4074648751152,"wires":[["c77cd558.24f4a8","f755189d.74271"]]},{"id":"c77cd558.24f4a8","type":"debug","z":"121c01c2.e652c6","name":"Fonts Files","active":false,"console":"false","complete":"filename","x":713.7963104248047,"y":1084.1852949990166,"wires":[]},{"id":"6ecd6a65.6fdd24","type":"http response","z":"121c01c2.e652c6","name":"","x":850.444539388021,"y":790.7963808907402,"wires":[]},{"id":"35eb4bc4.90d7ec","type":"http in","z":"121c01c2.e652c6","name":"Bootstrap","url":"/","method":"get","swaggerDoc":"","x":113.88889694213867,"y":791.9074428346421,"wires":[["ba86e556.423198"]]},{"id":"ba86e556.423198","type":"file in","z":"121c01c2.e652c6","name":"boostrap.min","filename":"C:/Desenvolvimento/git/React/react-bootstrap-exemplo/build/boostrap.min","format":"utf8","x":492.0000127156577,"y":792.0185555352105,"wires":[["15556d9a.6c5cea"]]},{"id":"15556d9a.6c5cea","type":"function","z":"121c01c2.e652c6","name":"Text/CSS","func":"msg.headers = { \"Content-type\" : \"text/css\" }\n \nreturn msg;","outputs":1,"noerr":0,"x":694.0185432434082,"y":790.574133767022,"wires":[["6ecd6a65.6fdd24"]]},{"id":"f768b79b.e63a08","type":"debug","z":"121c01c2.e652c6","name":"CSS files","active":false,"console":"false","complete":"true","x":707.9074668884277,"y":919.6297549141777,"wires":[]},{"id":"a9575aa5.659298","type":"comment","z":"121c01c2.e652c6","name":"Exclui um registro","info":"$options => i for case insensitive search\n\nStart with string\n\ndb.collection.find({zip:{'$regex' : '^string', '$options' : 'i'}})\nEnd with string\n\ndb.collection.find({zip:{'$regex' : 'string$', '$options' : 'i'}})\nContains string\n\ndb.collection.find({zip:{'$regex' : 'string', '$options' : 'i'}})\nDoesn't Contains string\n\ndb.collection.find({zip:{'$regex' : '^((?!string).)*$', '$options' : 'i'}})\nKeep this as a bookmark, and a reference for any other alterations you may need. http://www.cheatography.com/davechild/cheat-sheets/regular-expressions/","x":208.23333740234375,"y":308.23333740234375,"wires":[]},{"id":"dde90833.2d6a5","type":"comment","z":"121c01c2.e652c6","name":"Cadastro de contas","info":"$options => i for case insensitive search\n\nStart with string\n\ndb.collection.find({zip:{'$regex' : '^string', '$options' : 'i'}})\nEnd with string\n\ndb.collection.find({zip:{'$regex' : 'string$', '$options' : 'i'}})\nContains string\n\ndb.collection.find({zip:{'$regex' : 'string', '$options' : 'i'}})\nDoesn't Contains string\n\ndb.collection.find({zip:{'$regex' : '^((?!string).)*$', '$options' : 'i'}})\nKeep this as a bookmark, and a reference for any other alterations you may need. http://www.cheatography.com/davechild/cheat-sheets/regular-expressions/","x":667.9074554443359,"y":62.35185432434082,"wires":[]},{"id":"a8a65e8f.ef3df","type":"comment","z":"121c01c2.e652c6","name":"Servidor WEB","info":"$options => i for case insensitive search\n\nStart with string\n\ndb.collection.find({zip:{'$regex' : '^string', '$options' : 'i'}})\nEnd with string\n\ndb.collection.find({zip:{'$regex' : 'string$', '$options' : 'i'}})\nContains string\n\ndb.collection.find({zip:{'$regex' : 'string', '$options' : 'i'}})\nDoesn't Contains string\n\ndb.collection.find({zip:{'$regex' : '^((?!string).)*$', '$options' : 'i'}})\nKeep this as a bookmark, and a reference for any other alterations you may need. http://www.cheatography.com/davechild/cheat-sheets/regular-expressions/","x":533.4629516601562,"y":701.6851711273193,"wires":[]},{"id":"8c91fad3.2f359","type":"mqtt-broker","z":"121c01c2.e652c6","broker":"localhost","port":"1883","clientid":"","usetls":false,"compatmode":true,"keepalive":"60","cleansession":true,"willTopic":"","willQos":"0","willPayload":"","birthTopic":"","birthQos":"0","birthPayload":""},{"id":"1ba03f37.e3ec11","type":"mongodb","z":"","hostname":"127.0.0.1","port":"27017","db":"db","name":""}]
+```
+Select all **"Ctrl-a"** --> Copy **"Ctrl-c"** --> Past **"Ctrl-v"** all JSON content to the box that appears empty in node-red.
+
+Click "OK" and position the flow where to find, the better.
+
+Check out http://nodered.org/docs/getting-started/ for full instructions on getting started.
+
+Below you will find some information on how to perform common tasks.
+
+##5-Configuring access of node-red across settings.js
+
+**DNS**
+There are two ways to access a page on the Internet: the domain name "DNS" or "IP ADDRESS" of the servers on which it is hosted. In our case "Node-RED."
+
+For your application to make a simple DNS access or "IP ADDRESS". We need to edit the [settings.js][9] file.
+
+    user folder...\AppData\Roaming\npm\node_modules\node-red\settings.js
+or 
+
+    user folder...\.node-red\settings.js
+
+The first thing that changed is the node-red port. Change 8080 to 80 as below:
+
+    uiPort: process.env.PORT || 80,
+    
+The second change was uncomment the line 
+
+    httpAdminRoot: '/admin',
+    
+Now save the "settings.js" and restart **node-red**
+    
+With this change your page application its goes::
+
+    http://127.0.0.1:80
+    
+And now to access your **node-red flow** enter in:
+
+    http://127.0.0.1:80/admin/
+
+And now it is easy to configure your DNS server, for directly access your application. And remember now to access your flow is "IP/admin"!
+
+Now you can create an ALIAS on your DNS server for the IP Project.
+
+| NAME          |   TYPE        |   TARGET      |
+| --------      | -----------   |-----------    |
+| example.com   |      A        | 192.168.0.X   |
+
+# Local node development
+
+    C:\Desenvolvimento\git\node-red-nodes\function\random>npm link
+    
+Creat a new link in node-red folder with package.json config name ("name":"node-red-node-random")
+    
+    C:\Users\marcelo.miranda\AppData\Roaming\npm\node_modules\node-red>npm link node-red-node-random
+    
+Restart node-red and find your new node!
+___
+##6- PASSWORD in node-red flow
+
+To protect your **node-red flow**, you can enable password. 
+
+The first thing enter the **node_modules** directory:
+
+    ....\AppData\Roaming\npm\node_modules
+
+You need to make a key with this commnand and put your **password**:
+
+    node -e "console.log(require('bcryptjs').hashSync(process.argv[1], 8));" your-password-here
+
+Now save result number and edit the file settings.js again.
+
+ ```sh
+ /**
+ * Copyright 2013, 2016 IBM Corp.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ **/
+
+// The `https` setting requires the `fs` module. Uncomment the following
+// to make it available:
+//var fs = require("fs");
+
+module.exports = {
+    // the tcp port that the Node-RED web server is listening on
+    uiPort: process.env.PORT || 80,
+
+    // By default, the Node-RED UI accepts connections on all IPv4 interfaces.
+    // The following property can be used to listen on a specific interface. For
+    // example, the following would only allow connections from the local machine.
+    //uiHost: "127.0.0.1",
+
+    // Retry time in milliseconds for MQTT connections
+    mqttReconnectTime: 15000,
+
+    // Retry time in milliseconds for Serial port connections
+    serialReconnectTime: 15000,
+
+    // Retry time in milliseconds for TCP socket connections
+    //socketReconnectTime: 10000,
+
+    // Timeout in milliseconds for TCP server socket connections
+    //  defaults to no timeout
+    //socketTimeout: 120000,
+
+    // Timeout in milliseconds for HTTP request connections
+    //  defaults to 120 seconds
+    //httpRequestTimeout: 120000,
+
+    // The maximum length, in characters, of any message sent to the debug sidebar tab
+    debugMaxLength: 1000,
+
+    // The file containing the flows. If not set, it defaults to flows_<hostname>.json
+    //flowFile: 'flows.json',
+
+    // To enabled pretty-printing of the flow within the flow file, set the following
+    //  property to true:
+    //flowFilePretty: true,
+
+    // By default, all user data is stored in the Node-RED install directory. To
+    // use a different location, the following property can be used
+    //userDir: '/home/nol/.node-red/',
+
+    // Node-RED scans the `nodes` directory in the install directory to find nodes.
+    // The following property can be used to specify an additional directory to scan.
+    //nodesDir: '/home/nol/.node-red/nodes',
+
+    // By default, the Node-RED UI is available at http://localhost:1880/
+    // The following property can be used to specifiy a different root path.
+    // If set to false, this is disabled.
+    httpAdminRoot: '/admin',
+
+    // Some nodes, such as HTTP In, can be used to listen for incoming http requests.
+    // By default, these are served relative to '/'. The following property
+    // can be used to specifiy a different root path. If set to false, this is
+    // disabled.
+    //httpNodeRoot: '/red-nodes',
+
+    // The following property can be used in place of 'httpAdminRoot' and 'httpNodeRoot',
+    // to apply the same root to both parts.
+    //httpRoot: '/red',
+
+    // When httpAdminRoot is used to move the UI to a different root path, the
+    // following property can be used to identify a directory of static content
+    // that should be served at http://localhost:1880/.
+    //httpStatic: '/home/nol/node-red-static/',
+
+    // Securing Node-RED
+    // -----------------
+    // To password protect the Node-RED editor and admin API, the following
+    // property can be used. See http://nodered.org/docs/security.html for details.
+    adminAuth: {
+        type: "credentials",
+        users: [{
+           username: "admin",
+            password: "$2a$08$tIP24A6fn9F9DH30OwunG.4dWSO7sJk/YvbabyvKY1ej9DN0GrCLe",
+            permissions: "*"
+        }]
+    },
+
+    // To password protect the node-defined HTTP endpoints (httpNodeRoot), or 
+    // the static content (httpStatic), the following properties can be used.
+    // The pass field is a bcrypt hash of the password.
+    // See http://nodered.org/docs/security.html#generating-the-password-hash
+    //httpNodeAuth: {user:"user",pass:"$2a$08$zZWtXTja0fB1pzD4sHCMyOCMYz2Z6dNbM6tl8sJogENOMcxWV9DN."},
+    //httpStaticAuth: {user:"user",pass:"$2a$08$zZWtXTja0fB1pzD4sHCMyOCMYz2Z6dNbM6tl8sJogENOMcxWV9DN."},
+
+    // The following property can be used to enable HTTPS
+    // See http://nodejs.org/api/https.html#https_https_createserver_options_requestlistener
+    // for details on its contents.
+    // See the comment at the top of this file on how to load the `fs` module used by
+    // this setting.
+    //
+    //https: {
+    //    key: fs.readFileSync('privatekey.pem'),
+    //    cert: fs.readFileSync('certificate.pem')
+    //},
+
+    // The following property can be used to disable the editor. The admin API
+    // is not affected by this option. To disable both the editor and the admin
+    // API, use either the httpRoot or httpAdminRoot properties
+    //disableEditor: false,
+
+    // The following property can be used to configure cross-origin resource sharing
+    // in the HTTP nodes.
+    // See https://github.com/troygoode/node-cors#configuration-options for
+    // details on its contents. The following is a basic permissive set of options:
+    //httpNodeCors: {
+    //    origin: "*",
+    //    methods: "GET,PUT,POST,DELETE"
+    //},
+
+    // If you need to set an http proxy please set an environment variable
+    // called http_proxy (or HTTP_PROXY) outside of Node-RED in the operating system.
+    // For example - http_proxy=http://myproxy.com:8080
+    // (Setting it here will have no effect)
+    // You may also specify no_proxy (or NO_PROXY) to supply a comma separated
+    // list of domains to not proxy, eg - no_proxy=.acme.co,.acme.co.uk
+
+    // The following property can be used to add a custom middleware function
+    // in front of all http in nodes. This allows custom authentication to be
+    // applied to all http in nodes, or any other sort of common request processing.
+    //httpNodeMiddleware: function(req,res,next) {
+    //   // Handle/reject the request, or pass it on to the http in node
+    //   // by calling next();
+    //   next();
+    //},
+
+    // Anything in this hash is globally available to all functions.
+    // It is accessed as context.global.
+    // eg:
+    //    functionGlobalContext: { os:require('os') }
+    // can be accessed in a function block as:
+    //    context.global.os
+
+    functionGlobalContext: {
+        // os:require('os'),
+        // octalbonescript:require('octalbonescript'),
+        // jfive:require("johnny-five"),
+        // j5board:require("johnny-five").Board({repl:false})
+    },
+
+    // The following property can be used to order the categories in the editor
+    // palette. If a node's category is not in the list, the category will get
+    // added to the end of the palette.
+    // If not set, the following default order is used:
+    //paletteCategories: ['subflows', 'input', 'output', 'function', 'social', 'mobile', 'storage', 'analysis', 'advanced'],
+
+    // Configure the logging output
+    logging: {
+        // Only console logging is currently supported
+        console: {
+            // Level of logging to be recorded. Options are:
+            // fatal - only those errors which make the application unusable should be recorded
+            // error - record errors which are deemed fatal for a particular request + fatal errors
+            // warn - record problems which are non fatal + errors + fatal errors
+            // info - record information about the general running of the application + warn + error + fatal errors
+            // debug - record information which is more verbose than info + info + warn + error + fatal errors
+            // trace - record very detailed logging + debug + info + warn + error + fatal errors
+            level: "info",
+            // Whether or not to include metric events in the log output
+            metrics: false,
+            // Whether or not to include audit events in the log output
+            audit: false
+        }
+    }
+}
+ ```
+
+Find and uncomment the lines as bellow and place the generated password on the line.
+
+    adminAuth: {
+        type: "credentials",
+        users: [{
+           username: "admin",
+            password: "your generated password",
+            permissions: "*"
+        }]
+    },
+
+Now save the "settings.js" and restart **node-red**
+
+When you come back to:
+
+    http://127.0.0.1:80/admin/
+
+![alt tag](https://github.com/MarceloProjetos/react-bootstrap-exemplo/blob/master/images/node-red_login.png)
+
+Put username: "admin" and password: 
+
+## 6-Installation MongoDB
+
+Access the site [MongoDB][5]
+Download file mongodb-win32-x86_64-2008plus-ssl-3.2.9-signed.msi or later version.
+Run the default full installation.
+
+Once installed MongoDB Create 3 directories to store the data.
+
+    mkdir c:\data
+    mkdir c:\data\db
+    mkdir c:\data\log
+        
+In c:\data create one file named "mongod.cfg" containing:
+
+    systemLog:
+    destination: file
+    path: c:\data\log\mongod.log
+    storage:
+    dbPath: c:\data\db
+
+Save and close file...
+
+Starting Server MongoDB "**mongod**"
+
+Enter the directory where is installed the binaries and run the command. 
+
+In my case it is ...
+
+    c:\Program Files\MongoDB\Server\3.2\bin>mongod -dbpath c:\data\db
+
+If your system is Windows 32bits
+
+    C:\Program Files\MongoDB\Server\3.2\bin>mongod --journal --storageEngine=mmapv1 -dbpath c:\data\db
+    
+If the Windows firewall ask for permission, click the button to "Allow Access".
+
+Now open another Windows Prompt or "Powershell"
+
+To make a connection to MongoDB server that left running in the previous step.
+
+Enter the directory where you installed the binaries again and run:
+
+    c:\Program Files\MongoDB\Server\3.2\bin\mongo.exe
+
+You will see the prompt mongodb, ready to receive your commands!
+___
+###Testing and creating Collections or Tables
+
+Enter at the prompt where you run "mongo.exe" run commands below:
+
+    use db 					            <--Create a database called db. If exists it enters in the collection.
+    db.createCollection('parametros')	<--Create a collection called parametros
+    db.createCollection('log_erro')		<--Create a collection called log_erro
+    db.createCollection('indice')		<--Create a collection called indice
+    show dbs 				            <--Show names of banks and their sizes
+    show collections			        <--Displays the collections in the current bank
+    exit					            <--Exit to mongo shell or **Ctrl + C**
+
+Installing the service for MongoDB automatically start on Windows **boot**.
+
+Enter the directory where is installed the binaries and run the command.
+
+    c:\Program Files\MongoDB\Server\3.2\bin\mongod --config "c:\data\mongod.cfg" --install
+    
+If your system is Windows 32bits
+
+    c:\Program Files\MongoDB\Server\3.2\bin\mongod --journal --config "c:\data\mongod.cfg" --install
+    
+I use as webadmin the "**mongobooster**"
+
+## Table of UI Components
+
+- [Duplicatas](#duplicatas)
+- [Node-red](#node-red)
 - [Folder Structure](#folder-structure)
 - [Available Scripts](#available-scripts)
   - [npm start](#npm-start)
   - [npm test](#npm-test)
   - [npm run build](#npm-run-build)
-  - [npm run eject](#npm-run-eject)
-- [Syntax Highlighting in the Editor](#syntax-highlighting-in-the-editor)
-- [Displaying Lint Output in the Editor](#displaying-lint-output-in-the-editor)
-- [Installing a Dependency](#installing-a-dependency)
-- [Importing a Component](#importing-a-component)
-- [Adding a Stylesheet](#adding-a-stylesheet)
-- [Post-Processing CSS](#post-processing-css)
-- [Adding Images and Fonts](#adding-images-and-fonts)
-- [Using the `public` Folder](#using-the-public-folder)
-- [Using Global Variables](#using-global-variables)
-- [Adding Bootstrap](#adding-bootstrap)
-- [Adding Flow](#adding-flow)
-- [Adding Custom Environment Variables](#adding-custom-environment-variables)
-- [Can I Use Decorators?](#can-i-use-decorators)
-- [Integrating with a Node Backend](#integrating-with-a-node-backend)
-- [Proxying API Requests in Development](#proxying-api-requests-in-development)
-- [Using HTTPS in Development](#using-https-in-development)
-- [Generating Dynamic `<meta>` Tags on the Server](#generating-dynamic-meta-tags-on-the-server)
-- [Running Tests](#running-tests)
-  - [Filename Conventions](#filename-conventions)
-  - [Command Line Interface](#command-line-interface)
-  - [Version Control Integration](#version-control-integration)
-  - [Writing Tests](#writing-tests)
-  - [Testing Components](#testing-components)
-  - [Using Third Party Assertion Libraries](#using-third-party-assertion-libraries)
-  - [Initializing Test Environment](#initializing-test-environment)
-  - [Focusing and Excluding Tests](#focusing-and-excluding-tests)
-  - [Coverage Reporting](#coverage-reporting)
-  - [Continuous Integration](#continuous-integration)
-  - [Disabling jsdom](#disabling-jsdom)
-  - [Experimental Snapshot Testing](#experimental-snapshot-testing)
-  - [Editor Integration](#editor-integration)
-- [Developing Components in Isolation](#developing-components-in-isolation)
-- [Making a Progressive Web App](#making-a-progressive-web-app)
-- [Deployment](#deployment)
-  - [Serving Apps with Client-Side Routing](#serving-apps-with-client-side-routing)
-  - [Building for Relative Paths](#building-for-relative-paths)
-  - [Firebase](#firebase)
-  - [GitHub Pages](#github-pages)
-  - [Heroku](#heroku)
-  - [Modulus](#modulus)
-  - [Netlify](#netlify)
-  - [Now](#now)
-  - [S3 and CloudFront](#s3-and-cloudfront)
-  - [Surge](#surge)
-- [Troubleshooting](#troubleshooting)
-  - [`npm test` hangs on macOS Sierra](#npm-test-hangs-on-macos-sierra)
-  - [`npm run build` silently fails](#npm-run-build-silently-fails)
-- [Something Missing?](#something-missing)
 
-## Updating to New Releases
+## Duplicatas
 
-Create React App is divided into two packages:
+##Component preview page
+![alt tag](https://github.com/MarceloProjetos/react-bootstrap-exemplo/blob/master/images/duplicatas.png)
 
-* `create-react-app` is a global command-line utility that you use to create new projects.
-* `react-scripts` is a development dependency in the generated projects (including this one).
+---
 
-You almost never need to update `create-react-app` itself: it delegates all the setup to `react-scripts`.
+## Available Scripts
 
-When you run `create-react-app`, it always creates the project with the latest version of `react-scripts` so you’ll get all the new features and improvements in newly created apps automatically.
+In the project directory, you can run:
 
-To update an existing project to a new version of `react-scripts`, [open the changelog](https://github.com/facebookincubator/create-react-app/blob/master/CHANGELOG.md), find the version you’re currently on (check `package.json` in this folder if you’re not sure), and apply the migration instructions for the newer versions.
+### `npm start`
 
-In most cases bumping the `react-scripts` version in `package.json` and running `npm install` in this folder should be enough, but it’s good to consult the [changelog](https://github.com/facebookincubator/create-react-app/blob/master/CHANGELOG.md) for potential breaking changes.
+Runs the app in the development mode.<br>
+Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
-We commit to keeping the breaking changes minimal so you can upgrade `react-scripts` painlessly.
+The page will reload if you make edits.<br>
+You will also see any lint errors in the console.
 
-## Sending Feedback
+### `npm test`
 
-We are always open to [your feedback](https://github.com/facebookincubator/create-react-app/issues).
+Launches the test runner in the interactive watch mode.  
+See the section about [running tests](#running-tests) for more information.
+
+### `npm run build`
+Builds the app for production to the `build` folder.<br>
+It correctly bundles React in production mode and optimizes the build for the best performance.
+
+The build is minified and the filenames include the hashes.<br>
+Your app is ready to be deployed!
+
+The build folder is ready to be deployed.
+You may also serve it locally with a static server:
+```
+  npm install -g pushstate-server
+  pushstate-server build
+```
+Open http://localhost:9000
+
+---
+
 
 ## Folder Structure
 
@@ -104,1141 +579,23 @@ my-app/
     logo.svg
 ```
 
-For the project to build, **these files must exist with exact filenames**:
 
-* `public/index.html` is the page template;
-* `src/index.js` is the JavaScript entry point.
+#Author
 
-You can delete or rename the other files.
+[Marcelo Miranda][4]
 
-You may create subdirectories inside `src`. For faster rebuilds, only files inside `src` are processed by Webpack.<br>
-You need to **put any JS and CSS files inside `src`**, or Webpack won’t see them.
+pxa255@gmail.com
 
-Only files inside `public` can be used from `public/index.html`.<br>
-Read instructions below for using assets from JavaScript and HTML.
+[1]:http://nodered.org
+[2]:http://activemq.apache.org/
+[3]:https://nodejs.org/
+[4]:https://github.com/MarceloProjetos
+[5]:https://www.mongodb.com/download-center#community
+[6]:http://www.oracle.com/technetwork/pt/java/javase/downloads/jdk8-downloads-2133151.html
+[7]:http://www.pipo-store.com/pipo-x9-tv-box-8-9-inch-mini-pc.html
+[8]:https://www.python.org/downloads/release/python-2712/
+[10]:https://tortoisegit.org/
+[11]:http://www.7-zip.org/
+[12]:https://www.sublimetext.com/
+[13]:https://packagecontrol.io/installation
 
-You can, however, create more top-level directories.<br>
-They will not be included in the production build so you can use them for things like documentation.
-
-## Available Scripts
-
-In the project directory, you can run:
-
-### `npm start`
-
-Runs the app in the development mode.<br>
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
-
-The page will reload if you make edits.<br>
-You will also see any lint errors in the console.
-
-### `npm test`
-
-Launches the test runner in the interactive watch mode.<br>
-See the section about [running tests](#running-tests) for more information.
-
-### `npm run build`
-
-Builds the app for production to the `build` folder.<br>
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.<br>
-Your app is ready to be deployed!
-
-See the section about [deployment](#deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (Webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Syntax Highlighting in the Editor
-
-To configure the syntax highlighting in your favorite text editor, head to the [Babel's docs](https://babeljs.io/docs/editors) and follow the instructions. Some of the most popular editors are covered.
-
-## Displaying Lint Output in the Editor
-
->Note: this feature is available with `react-scripts@0.2.0` and higher.
-
-Some editors, including Sublime Text, Atom, and Visual Studio Code, provide plugins for ESLint.
-
-They are not required for linting. You should see the linter output right in your terminal as well as the browser console. However, if you prefer the lint results to appear right in your editor, there are some extra steps you can do.
-
-You would need to install an ESLint plugin for your editor first.
-
->**A note for Atom `linter-eslint` users**
-
->If you are using the Atom `linter-eslint` plugin, make sure that **Use global ESLint installation** option is checked:
-
-><img src="http://i.imgur.com/yVNNHJM.png" width="300">
-
-Then add this block to the `package.json` file of your project:
-
-```js
-{
-  // ...
-  "eslintConfig": {
-    "extends": "react-app"
-  }
-}
-```
-
-Finally, you will need to install some packages *globally*:
-
-```sh
-npm install -g eslint-config-react-app@0.3.0 eslint@3.8.1 babel-eslint@7.0.0 eslint-plugin-react@6.4.1 eslint-plugin-import@2.0.1 eslint-plugin-jsx-a11y@2.2.3 eslint-plugin-flowtype@2.21.0
-```
-
-We recognize that this is suboptimal, but it is currently required due to the way we hide the ESLint dependency. The ESLint team is already [working on a solution to this](https://github.com/eslint/eslint/issues/3458) so this may become unnecessary in a couple of months.
-
-## Installing a Dependency
-
-The generated project includes React and ReactDOM as dependencies. It also includes a set of scripts used by Create React App as a development dependency. You may install other dependencies (for example, React Router) with `npm`:
-
-```
-npm install --save <library-name>
-```
-
-## Importing a Component
-
-This project setup supports ES6 modules thanks to Babel.<br>
-While you can still use `require()` and `module.exports`, we encourage you to use [`import` and `export`](http://exploringjs.com/es6/ch_modules.html) instead.
-
-For example:
-
-### `Button.js`
-
-```js
-import React, { Component } from 'react';
-
-class Button extends Component {
-  render() {
-    // ...
-  }
-}
-
-export default Button; // Don’t forget to use export default!
-```
-
-### `DangerButton.js`
-
-
-```js
-import React, { Component } from 'react';
-import Button from './Button'; // Import a component from another file
-
-class DangerButton extends Component {
-  render() {
-    return <Button color="red" />;
-  }
-}
-
-export default DangerButton;
-```
-
-Be aware of the [difference between default and named exports](http://stackoverflow.com/questions/36795819/react-native-es-6-when-should-i-use-curly-braces-for-import/36796281#36796281). It is a common source of mistakes.
-
-We suggest that you stick to using default imports and exports when a module only exports a single thing (for example, a component). That’s what you get when you use `export default Button` and `import Button from './Button'`.
-
-Named exports are useful for utility modules that export several functions. A module may have at most one default export and as many named exports as you like.
-
-Learn more about ES6 modules:
-
-* [When to use the curly braces?](http://stackoverflow.com/questions/36795819/react-native-es-6-when-should-i-use-curly-braces-for-import/36796281#36796281)
-* [Exploring ES6: Modules](http://exploringjs.com/es6/ch_modules.html)
-* [Understanding ES6: Modules](https://leanpub.com/understandinges6/read#leanpub-auto-encapsulating-code-with-modules)
-
-## Adding a Stylesheet
-
-This project setup uses [Webpack](https://webpack.github.io/) for handling all assets. Webpack offers a custom way of “extending” the concept of `import` beyond JavaScript. To express that a JavaScript file depends on a CSS file, you need to **import the CSS from the JavaScript file**:
-
-### `Button.css`
-
-```css
-.Button {
-  padding: 20px;
-}
-```
-
-### `Button.js`
-
-```js
-import React, { Component } from 'react';
-import './Button.css'; // Tell Webpack that Button.js uses these styles
-
-class Button extends Component {
-  render() {
-    // You can use them as regular CSS styles
-    return <div className="Button" />;
-  }
-}
-```
-
-**This is not required for React** but many people find this feature convenient. You can read about the benefits of this approach [here](https://medium.com/seek-ui-engineering/block-element-modifying-your-javascript-components-d7f99fcab52b). However you should be aware that this makes your code less portable to other build tools and environments than Webpack.
-
-In development, expressing dependencies this way allows your styles to be reloaded on the fly as you edit them. In production, all CSS files will be concatenated into a single minified `.css` file in the build output.
-
-If you are concerned about using Webpack-specific semantics, you can put all your CSS right into `src/index.css`. It would still be imported from `src/index.js`, but you could always remove that import if you later migrate to a different build tool.
-
-## Post-Processing CSS
-
-This project setup minifies your CSS and adds vendor prefixes to it automatically through [Autoprefixer](https://github.com/postcss/autoprefixer) so you don’t need to worry about it.
-
-For example, this:
-
-```css
-.App {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-}
-```
-
-becomes this:
-
-```css
-.App {
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-orient: horizontal;
-  -webkit-box-direction: normal;
-      -ms-flex-direction: row;
-          flex-direction: row;
-  -webkit-box-align: center;
-      -ms-flex-align: center;
-          align-items: center;
-}
-```
-
-There is currently no support for preprocessors such as Less, or for sharing variables across CSS files.
-
-## Adding Images and Fonts
-
-With Webpack, using static assets like images and fonts works similarly to CSS.
-
-You can **`import` an image right in a JavaScript module**. This tells Webpack to include that image in the bundle. Unlike CSS imports, importing an image or a font gives you a string value. This value is the final image path you can reference in your code.
-
-Here is an example:
-
-```js
-import React from 'react';
-import logo from './logo.png'; // Tell Webpack this JS file uses this image
-
-console.log(logo); // /logo.84287d09.png
-
-function Header() {
-  // Import result is the URL of your image
-  return <img src={logo} alt="Logo" />;
-}
-
-export default Header;
-```
-
-This ensures that when the project is built, Webpack will correctly move the images into the build folder, and provide us with correct paths.
-
-This works in CSS too:
-
-```css
-.Logo {
-  background-image: url(./logo.png);
-}
-```
-
-Webpack finds all relative module references in CSS (they start with `./`) and replaces them with the final paths from the compiled bundle. If you make a typo or accidentally delete an important file, you will see a compilation error, just like when you import a non-existent JavaScript module. The final filenames in the compiled bundle are generated by Webpack from content hashes. If the file content changes in the future, Webpack will give it a different name in production so you don’t need to worry about long-term caching of assets.
-
-Please be advised that this is also a custom feature of Webpack.
-
-**It is not required for React** but many people enjoy it (and React Native uses a similar mechanism for images).<br>
-An alternative way of handling static assets is described in the next section.
-
-## Using the `public` Folder
-
->Note: this feature is available with `react-scripts@0.5.0` and higher.
-
-Normally we encourage you to `import` assets in JavaScript files as described above. This mechanism provides a number of benefits:
-
-* Scripts and stylesheets get minified and bundled together to avoid extra network requests.
-* Missing files cause compilation errors instead of 404 errors for your users.
-* Result filenames include content hashes so you don’t need to worry about browsers caching their old versions.
-
-However there is an **escape hatch** that you can use to add an asset outside of the module system.
-
-If you put a file into the `public` folder, it will **not** be processed by Webpack. Instead it will be copied into the build folder untouched.   To reference assets in the `public` folder, you need to use a special variable called `PUBLIC_URL`.
-
-Inside `index.html`, you can use it like this:
-
-```html
-<link rel="shortcut icon" href="%PUBLIC_URL%/favicon.ico">
-```
-
-Only files inside the `public` folder will be accessible by `%PUBLIC_URL%` prefix. If you need to use a file from `src` or `node_modules`, you’ll have to copy it there to explicitly specify your intention to make this file a part of the build.
-
-When you run `npm run build`, Create React App will substitute `%PUBLIC_URL%` with a correct absolute path so your project works even if you use client-side routing or host it at a non-root URL.
-
-In JavaScript code, you can use `process.env.PUBLIC_URL` for similar purposes:
-
-```js
-render() {
-  // Note: this is an escape hatch and should be used sparingly!
-  // Normally we recommend using `import` for getting asset URLs
-  // as described in “Adding Images and Fonts” above this section.
-  return <img src={process.env.PUBLIC_URL + '/img/logo.png'} />;
-}
-```
-
-Keep in mind the downsides of this approach:
-
-* None of the files in `public` folder get post-processed or minified.
-* Missing files will not be called at compilation time, and will cause 404 errors for your users.
-* Result filenames won’t include content hashes so you’ll need to add query arguments or rename them every time they change.
-
-However, it can be handy for referencing assets like [`manifest.webmanifest`](https://developer.mozilla.org/en-US/docs/Web/Manifest) from HTML, or including small scripts like [`pace.js`](http://github.hubspot.com/pace/docs/welcome/) outside of the bundled code.
-
-Note that if you add a `<script>` that declares global variables, you also need to read the next section on using them.
-
-## Using Global Variables
-
-When you include a script in the HTML file that defines global variables and try to use one of these variables in the code, the linter will complain because it cannot see the definition of the variable.
-
-You can avoid this by reading the global variable explicitly from the `window` object, for example:
-
-```js
-const $ = window.$;
-```
-
-This makes it obvious you are using a global variable intentionally rather than because of a typo.
-
-Alternatively, you can force the linter to ignore any line by adding `// eslint-disable-line` after it.
-
-## Adding Bootstrap
-
-You don’t have to use [React Bootstrap](https://react-bootstrap.github.io) together with React but it is a popular library for integrating Bootstrap with React apps. If you need it, you can integrate it with Create React App by following these steps:
-
-Install React Bootstrap and Bootstrap from NPM. React Bootstrap does not include Bootstrap CSS so this needs to be installed as well:
-
-```
-npm install react-bootstrap --save
-npm install bootstrap@3 --save
-```
-
-Import Bootstrap CSS and optionally Bootstrap theme CSS in the ```src/index.js``` file:
-
-```js
-import 'bootstrap/dist/css/bootstrap.css';
-import 'bootstrap/dist/css/bootstrap-theme.css';
-```
-
-Import required React Bootstrap components within ```src/App.js``` file or your custom component files:
-
-```js
-import { Navbar, Jumbotron, Button } from 'react-bootstrap';
-```
-
-Now you are ready to use the imported React Bootstrap components within your component hierarchy defined in the render method. Here is an example [`App.js`](https://gist.githubusercontent.com/gaearon/85d8c067f6af1e56277c82d19fd4da7b/raw/6158dd991b67284e9fc8d70b9d973efe87659d72/App.js) redone using React Bootstrap.
-
-## Adding Flow
-
-Flow typing is currently [not supported out of the box](https://github.com/facebookincubator/create-react-app/issues/72) with the default `.flowconfig` generated by Flow. If you run it, you might get errors like this:
-
-```js
-node_modules/fbjs/lib/Deferred.js.flow:60
- 60:     Promise.prototype.done.apply(this._promise, arguments);
-                           ^^^^ property `done`. Property not found in
-495: declare class Promise<+R> {
-     ^ Promise. See lib: /private/tmp/flow/flowlib_34952d31/core.js:495
-
-node_modules/fbjs/lib/shallowEqual.js.flow:29
- 29:     return x !== 0 || 1 / (x: $FlowIssue) === 1 / (y: $FlowIssue);
-                                   ^^^^^^^^^^ identifier `$FlowIssue`. Could not resolve name
-```
-
-To fix this, change your `.flowconfig` to look like this:
-
-```ini
-[ignore]
-<PROJECT_ROOT>/node_modules/fbjs/.*
-```
-
-Re-run flow, and you shouldn’t get any extra issues.
-
-## Adding Custom Environment Variables
-
->Note: this feature is available with `react-scripts@0.2.3` and higher.
-
-Your project can consume variables declared in your environment as if they were declared locally in your JS files. By
-default you will have `NODE_ENV` defined for you, and any other environment variables starting with
-`REACT_APP_`. These environment variables will be defined for you on `process.env`. For example, having an environment
-variable named `REACT_APP_SECRET_CODE` will be exposed in your JS as `process.env.REACT_APP_SECRET_CODE`, in addition
-to `process.env.NODE_ENV`.
-
->Note: Changing any environment variables will require you to restart the development server if it is running.
-
-These environment variables can be useful for displaying information conditionally based on where the project is
-deployed or consuming sensitive data that lives outside of version control.
-
-First, you need to have environment variables defined. For example, let’s say you wanted to consume a secret defined
-in the environment inside a `<form>`:
-
-```jsx
-render() {
-  return (
-    <div>
-      <small>You are running this application in <b>{process.env.NODE_ENV}</b> mode.</small>
-      <form>
-        <input type="hidden" defaultValue={process.env.REACT_APP_SECRET_CODE} />
-      </form>
-    </div>
-  );
-}
-```
-
-During the build, `process.env.REACT_APP_SECRET_CODE` will be replaced with the current value of the `REACT_APP_SECRET_CODE` environment variable. Remember that the `NODE_ENV` variable will be set for you automatically.
-
-When you load the app in the browser and inspect the `<input>`, you will see its value set to `abcdef`, and the bold text will show the environment provided when using `npm start`:
-
-```html
-<div>
-  <small>You are running this application in <b>development</b> mode.</small>
-  <form>
-    <input type="hidden" value="abcdef" />
-  </form>
-</div>
-```
-
-Having access to the `NODE_ENV` is also useful for performing actions conditionally:
-
-```js
-if (process.env.NODE_ENV !== 'production') {
-  analytics.disable();
-}
-```
-
-The above form is looking for a variable called `REACT_APP_SECRET_CODE` from the environment. In order to consume this
-value, we need to have it defined in the environment. This can be done using two ways: either in your shell or in
-a `.env` file.
-
-### Adding Temporary Environment Variables In Your Shell
-
-Defining environment variables can vary between OSes. It's also important to know that this manner is temporary for the
-life of the shell session.
-
-#### Windows (cmd.exe)
-
-```cmd
-set REACT_APP_SECRET_CODE=abcdef&&npm start
-```
-
-(Note: the lack of whitespace is intentional.)
-
-#### Linux, OS X (Bash)
-
-```bash
-REACT_APP_SECRET_CODE=abcdef npm start
-```
-
-### Adding Development Environment Variables In `.env`
-
->Note: this feature is available with `react-scripts@0.5.0` and higher.
-
-To define permanent environment variables, create a file called `.env` in the root of your project:
-
-```
-REACT_APP_SECRET_CODE=abcdef
-```
-
-These variables will act as the defaults if the machine does not explicitly set them.<br>
-Please refer to the [dotenv documentation](https://github.com/motdotla/dotenv) for more details.
-
->Note: If you are defining environment variables for development, your CI and/or hosting platform will most likely need
-these defined as well. Consult their documentation how to do this. For example, see the documentation for [Travis CI](https://docs.travis-ci.com/user/environment-variables/) or [Heroku](https://devcenter.heroku.com/articles/config-vars).
-
-## Can I Use Decorators?
-
-Many popular libraries use [decorators](https://medium.com/google-developers/exploring-es7-decorators-76ecb65fb841) in their documentation.<br>
-Create React App doesn’t support decorator syntax at the moment because:
-
-* It is an experimental proposal and is subject to change.
-* The current specification version is not officially supported by Babel.
-* If the specification changes, we won’t be able to write a codemod because we don’t use them internally at Facebook.
-
-However in many cases you can rewrite decorator-based code without decorators just as fine.<br>
-Please refer to these two threads for reference:
-
-* [#214](https://github.com/facebookincubator/create-react-app/issues/214)
-* [#411](https://github.com/facebookincubator/create-react-app/issues/411)
-
-Create React App will add decorator support when the specification advances to a stable stage.
-
-## Integrating with a Node Backend
-
-Check out [this tutorial](https://www.fullstackreact.com/articles/using-create-react-app-with-a-server/) for instructions on integrating an app with a Node backend running on another port, and using `fetch()` to access it. You can find the companion GitHub repository [here](https://github.com/fullstackreact/food-lookup-demo).
-
-## Proxying API Requests in Development
-
->Note: this feature is available with `react-scripts@0.2.3` and higher.
-
-People often serve the front-end React app from the same host and port as their backend implementation.<br>
-For example, a production setup might look like this after the app is deployed:
-
-```
-/             - static server returns index.html with React app
-/todos        - static server returns index.html with React app
-/api/todos    - server handles any /api/* requests using the backend implementation
-```
-
-Such setup is **not** required. However, if you **do** have a setup like this, it is convenient to write requests like `fetch('/api/todos')` without worrying about redirecting them to another host or port during development.
-
-To tell the development server to proxy any unknown requests to your API server in development, add a `proxy` field to your `package.json`, for example:
-
-```js
-  "proxy": "http://localhost:4000",
-```
-
-This way, when you `fetch('/api/todos')` in development, the development server will recognize that it’s not a static asset, and will proxy your request to `http://localhost:4000/api/todos` as a fallback. The development server will only attempt to send requests without a `text/html` accept header to the proxy.
-
-Conveniently, this avoids [CORS issues](http://stackoverflow.com/questions/21854516/understanding-ajax-cors-and-security-considerations) and error messages like this in development:
-
-```
-Fetch API cannot load http://localhost:4000/api/todos. No 'Access-Control-Allow-Origin' header is present on the requested resource. Origin 'http://localhost:3000' is therefore not allowed access. If an opaque response serves your needs, set the request's mode to 'no-cors' to fetch the resource with CORS disabled.
-```
-
-Keep in mind that `proxy` only has effect in development (with `npm start`), and it is up to you to ensure that URLs like `/api/todos` point to the right thing in production. You don’t have to use the `/api` prefix. Any unrecognized request without a `text/html` accept header will be redirected to the specified `proxy`.
-
-Currently the `proxy` option only handles HTTP requests, and it won’t proxy WebSocket connections.<br>
-If the `proxy` option is **not** flexible enough for you, alternatively you can:
-
-* Enable CORS on your server ([here’s how to do it for Express](http://enable-cors.org/server_expressjs.html)).
-* Use [environment variables](#adding-custom-environment-variables) to inject the right server host and port into your app.
-
-## Using HTTPS in Development
-
->Note: this feature is available with `react-scripts@0.4.0` and higher.
-
-You may require the dev server to serve pages over HTTPS. One particular case where this could be useful is when using [the "proxy" feature](#proxying-api-requests-in-development) to proxy requests to an API server when that API server is itself serving HTTPS.
-
-To do this, set the `HTTPS` environment variable to `true`, then start the dev server as usual with `npm start`:
-
-#### Windows (cmd.exe)
-
-```cmd
-set HTTPS=true&&npm start
-```
-
-(Note: the lack of whitespace is intentional.)
-
-#### Linux, OS X (Bash)
-
-```bash
-HTTPS=true npm start
-```
-
-Note that the server will use a self-signed certificate, so your web browser will almost definitely display a warning upon accessing the page.
-
-## Generating Dynamic `<meta>` Tags on the Server
-
-Since Create React App doesn’t support server rendering, you might be wondering how to make `<meta>` tags dynamic and reflect the current URL. To solve this, we recommend to add placeholders into the HTML, like this:
-
-```html
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta property="og:title" content="%OG_TITLE%">
-    <meta property="og:description" content="%OG_DESCRIPTION%">
-```
-
-Then, on the server, regardless of the backend you use, you can read `index.html` into memory and replace `%OG_TITLE%`, `%OG_DESCRIPTION%`, and any other placeholders with values depending on the current URL. Just make sure to sanitize and escape the interpolated values so that they are safe to embed into HTML!
-
-If you use a Node server, you can even share the route matching logic between the client and the server. However duplicating it also works fine in simple cases.
-
-## Running Tests
-
->Note: this feature is available with `react-scripts@0.3.0` and higher.<br>
->[Read the migration guide to learn how to enable it in older projects!](https://github.com/facebookincubator/create-react-app/blob/master/CHANGELOG.md#migrating-from-023-to-030)
-
-Create React App uses [Jest](https://facebook.github.io/jest/) as its test runner. To prepare for this integration, we did a [major revamp](https://facebook.github.io/jest/blog/2016/09/01/jest-15.html) of Jest so if you heard bad things about it years ago, give it another try.
-
-Jest is a Node-based runner. This means that the tests always run in a Node environment and not in a real browser. This lets us enable fast iteration speed and prevent flakiness.
-
-While Jest provides browser globals such as `window` thanks to [jsdom](https://github.com/tmpvar/jsdom), they are only approximations of the real browser behavior. Jest is intended to be used for unit tests of your logic and your components rather than the DOM quirks.
-
-We recommend that you use a separate tool for browser end-to-end tests if you need them. They are beyond the scope of Create React App.
-
-### Filename Conventions
-
-Jest will look for test files with any of the following popular naming conventions:
-
-* Files with `.js` suffix in `__tests__` folders.
-* Files with `.test.js` suffix.
-* Files with `.spec.js` suffix.
-
-The `.test.js` / `.spec.js` files (or the `__tests__` folders) can be located at any depth under the `src` top level folder.
-
-We recommend to put the test files (or `__tests__` folders) next to the code they are testing so that relative imports appear shorter. For example, if `App.test.js` and `App.js` are in the same folder, the test just needs to `import App from './App'` instead of a long relative path. Colocation also helps find tests more quickly in larger projects.
-
-### Command Line Interface
-
-When you run `npm test`, Jest will launch in the watch mode. Every time you save a file, it will re-run the tests, just like `npm start` recompiles the code.
-
-The watcher includes an interactive command-line interface with the ability to run all tests, or focus on a search pattern. It is designed this way so that you can keep it open and enjoy fast re-runs. You can learn the commands from the “Watch Usage” note that the watcher prints after every run:
-
-![Jest watch mode](http://facebook.github.io/jest/img/blog/15-watch.gif)
-
-### Version Control Integration
-
-By default, when you run `npm test`, Jest will only run the tests related to files changed since the last commit. This is an optimization designed to make your tests runs fast regardless of how many tests you have. However it assumes that you don’t often commit the code that doesn’t pass the tests.
-
-Jest will always explicitly mention that it only ran tests related to the files changed since the last commit. You can also press `a` in the watch mode to force Jest to run all tests.
-
-Jest will always run all tests on a [continuous integration](#continuous-integration) server or if the project is not inside a Git or Mercurial repository.
-
-### Writing Tests
-
-To create tests, add `it()` (or `test()`) blocks with the name of the test and its code. You may optionally wrap them in `describe()` blocks for logical grouping but this is neither required nor recommended.
-
-Jest provides a built-in `expect()` global function for making assertions. A basic test could look like this:
-
-```js
-import sum from './sum';
-
-it('sums numbers', () => {
-  expect(sum(1, 2)).toEqual(3);
-  expect(sum(2, 2)).toEqual(4);
-});
-```
-
-All `expect()` matchers supported by Jest are [extensively documented here](http://facebook.github.io/jest/docs/api.html#expect-value).<br>
-You can also use [`jest.fn()` and `expect(fn).toBeCalled()`](http://facebook.github.io/jest/docs/api.html#tobecalled) to create “spies” or mock functions.
-
-### Testing Components
-
-There is a broad spectrum of component testing techniques. They range from a “smoke test” verifying that a component renders without throwing, to shallow rendering and testing some of the output, to full rendering and testing component lifecycle and state changes.
-
-Different projects choose different testing tradeoffs based on how often components change, and how much logic they contain. If you haven’t decided on a testing strategy yet, we recommend that you start with creating simple smoke tests for your components:
-
-```js
-import React from 'react';
-import ReactDOM from 'react-dom';
-import App from './App';
-
-it('renders without crashing', () => {
-  const div = document.createElement('div');
-  ReactDOM.render(<App />, div);
-});
-```
-
-This test mounts a component and makes sure that it didn’t throw during rendering. Tests like this provide a lot value with very little effort so they are great as a starting point, and this is the test you will find in `src/App.test.js`.
-
-When you encounter bugs caused by changing components, you will gain a deeper insight into which parts of them are worth testing in your application. This might be a good time to introduce more specific tests asserting specific expected output or behavior.
-
-If you’d like to test components in isolation from the child components they render, we recommend using [`shallow()` rendering API](http://airbnb.io/enzyme/docs/api/shallow.html) from [Enzyme](http://airbnb.io/enzyme/). You can write a smoke test with it too:
-
-```sh
-npm install --save-dev enzyme react-addons-test-utils
-```
-
-```js
-import React from 'react';
-import { shallow } from 'enzyme';
-import App from './App';
-
-it('renders without crashing', () => {
-  shallow(<App />);
-});
-```
-
-Unlike the previous smoke test using `ReactDOM.render()`, this test only renders `<App>` and doesn’t go deeper. For example, even if `<App>` itself renders a `<Button>` that throws, this test will pass. Shallow rendering is great for isolated unit tests, but you may still want to create some full rendering tests to ensure the components integrate correctly. Enzyme supports [full rendering with `mount()`](http://airbnb.io/enzyme/docs/api/mount.html), and you can also use it for testing state changes and component lifecycle.
-
-You can read the [Enzyme documentation](http://airbnb.io/enzyme/) for more testing techniques. Enzyme documentation uses Chai and Sinon for assertions but you don’t have to use them because Jest provides built-in `expect()` and `jest.fn()` for spies.
-
-Here is an example from Enzyme documentation that asserts specific output, rewritten to use Jest matchers:
-
-```js
-import React from 'react';
-import { shallow } from 'enzyme';
-import App from './App';
-
-it('renders welcome message', () => {
-  const wrapper = shallow(<App />);
-  const welcome = <h2>Welcome to React</h2>;
-  // expect(wrapper.contains(welcome)).to.equal(true);
-  expect(wrapper.contains(welcome)).toEqual(true);
-});
-```
-
-All Jest matchers are [extensively documented here](http://facebook.github.io/jest/docs/api.html#expect-value).<br>
-Nevertheless you can use a third-party assertion library like [Chai](http://chaijs.com/) if you want to, as described below.
-
-### Using Third Party Assertion Libraries
-
-We recommend that you use `expect()` for assertions and `jest.fn()` for spies. If you are having issues with them please [file those against Jest](https://github.com/facebook/jest/issues/new), and we’ll fix them. We intend to keep making them better for React, supporting, for example, [pretty-printing React elements as JSX](https://github.com/facebook/jest/pull/1566).
-
-However, if you are used to other libraries, such as [Chai](http://chaijs.com/) and [Sinon](http://sinonjs.org/), or if you have existing code using them that you’d like to port over, you can import them normally like this:
-
-```js
-import sinon from 'sinon';
-import { expect } from 'chai';
-```
-
-and then use them in your tests like you normally do.
-
-### Initializing Test Environment
-
->Note: this feature is available with `react-scripts@0.4.0` and higher.
-
-If your app uses a browser API that you need to mock in your tests or if you just need a global setup before running your tests, add a `src/setupTests.js` to your project. It will be automatically executed before running your tests.
-
-For example:
-
-#### `src/setupTests.js`
-```js
-const localStorageMock = {
-  getItem: jest.fn(),
-  setItem: jest.fn(),
-  clear: jest.fn()
-};
-global.localStorage = localStorageMock
-```
-
-### Focusing and Excluding Tests
-
-You can replace `it()` with `xit()` to temporarily exclude a test from being executed.<br>
-Similarly, `fit()` lets you focus on a specific test without running any other tests.
-
-### Coverage Reporting
-
-Jest has an integrated coverage reporter that works well with ES6 and requires no configuration.<br>
-Run `npm test -- --coverage` (note extra `--` in the middle) to include a coverage report like this:
-
-![coverage report](http://i.imgur.com/5bFhnTS.png)
-
-Note that tests run much slower with coverage so it is recommended to run it separately from your normal workflow.
-
-### Continuous Integration
-
-By default `npm test` runs the watcher with interactive CLI. However, you can force it to run tests once and finish the process by setting an environment variable called `CI`.
-
-When creating a build of your application with `npm run build` linter warnings are not checked by default. Like `npm test`, you can force the build to perform a linter warning check by setting the environment variable `CI`. If any warnings are encountered then the build fails.
-
-Popular CI servers already set the environment variable `CI` by default but you can do this yourself too:
-
-### On CI servers
-#### Travis CI
-
-1. Following the [Travis Getting started](https://docs.travis-ci.com/user/getting-started/) guide for syncing your GitHub repository with Travis.  You may need to initialize some settings manually in your [profile](https://travis-ci.org/profile) page.
-1. Add a `.travis.yml` file to your git repository.
-```
-language: node_js
-node_js:
-  - 4
-  - 6
-cache:
-  directories:
-    - node_modules
-script:
-  - npm test
-  - npm run build
-```
-1. Trigger your first build with a git push.
-1. [Customize your Travis CI Build](https://docs.travis-ci.com/user/customizing-the-build/) if needed.
-
-### On your own environment
-##### Windows (cmd.exe)
-
-```cmd
-set CI=true&&npm test
-```
-
-```cmd
-set CI=true&&npm run build
-```
-
-(Note: the lack of whitespace is intentional.)
-
-##### Linux, OS X (Bash)
-
-```bash
-CI=true npm test
-```
-
-```bash
-CI=true npm run build
-```
-
-The test command will force Jest to run tests once instead of launching the watcher.
-
->  If you find yourself doing this often in development, please [file an issue](https://github.com/facebookincubator/create-react-app/issues/new) to tell us about your use case because we want to make watcher the best experience and are open to changing how it works to accommodate more workflows.
-
-The build command will check for linter warnings and fail if any are found.
-
-### Disabling jsdom
-
-By default, the `package.json` of the generated project looks like this:
-
-```js
-  // ...
-  "scripts": {
-    // ...
-    "test": "react-scripts test --env=jsdom"
-  }
-```
-
-If you know that none of your tests depend on [jsdom](https://github.com/tmpvar/jsdom), you can safely remove `--env=jsdom`, and your tests will run faster.<br>
-To help you make up your mind, here is a list of APIs that **need jsdom**:
-
-* Any browser globals like `window` and `document`
-* [`ReactDOM.render()`](https://facebook.github.io/react/docs/top-level-api.html#reactdom.render)
-* [`TestUtils.renderIntoDocument()`](https://facebook.github.io/react/docs/test-utils.html#renderintodocument) ([a shortcut](https://github.com/facebook/react/blob/34761cf9a252964abfaab6faf74d473ad95d1f21/src/test/ReactTestUtils.js#L83-L91) for the above)
-* [`mount()`](http://airbnb.io/enzyme/docs/api/mount.html) in [Enzyme](http://airbnb.io/enzyme/index.html)
-
-In contrast, **jsdom is not needed** for the following APIs:
-
-* [`TestUtils.createRenderer()`](https://facebook.github.io/react/docs/test-utils.html#shallow-rendering) (shallow rendering)
-* [`shallow()`](http://airbnb.io/enzyme/docs/api/shallow.html) in [Enzyme](http://airbnb.io/enzyme/index.html)
-
-Finally, jsdom is also not needed for [snapshot testing](http://facebook.github.io/jest/blog/2016/07/27/jest-14.html). Longer term, this is the direction we are interested in exploring, but snapshot testing is [not fully baked yet](https://github.com/facebookincubator/create-react-app/issues/372) so we don’t officially encourage its usage yet.
-
-### Experimental Snapshot Testing
-
-Snapshot testing is a new feature of Jest that automatically generates text snapshots of your components and saves them on the disk so if the UI output changes, you get notified without manually writing any assertions on the component output.
-
-This feature is experimental and still [has major usage issues](https://github.com/facebookincubator/create-react-app/issues/372) so we only encourage you to use it if you like experimental technology. We intend to gradually improve it over time and eventually offer it as the default solution for testing React components, but this will take time. [Read more about snapshot testing.](http://facebook.github.io/jest/blog/2016/07/27/jest-14.html)
-
-### Editor Integration
-
-If you use [Visual Studio Code](https://code.visualstudio.com), there is a [Jest extension](https://github.com/orta/vscode-jest) which works with Create React App out of the box. This provides a lot of IDE-like features while using a text editor: showing the status of a test run with potential fail messages inline, starting and stopping the watcher automatically, and offering one-click snapshot updates. 
-
-![VS Code Jest Preview](https://cloud.githubusercontent.com/assets/49038/20795349/a032308a-b7c8-11e6-9b34-7eeac781003f.png)
-
-## Developing Components in Isolation
-
-Usually, in an app, you have a lot of UI components, and each of them has many different states.
-For an example, a simple button component could have following states:
-
-* With a text label.
-* With an emoji.
-* In the disabled mode.
-
-Usually, it’s hard to see these states without running a sample app or some examples.
-
-Create React App doesn't include any tools for this by default, but you can easily add [React Storybook](https://github.com/kadirahq/react-storybook) to your project. **It is a third-party tool that lets you develop components and see all their states in isolation from your app**.
-
-![React Storybook Demo](http://i.imgur.com/7CIAWpB.gif)
-
-You can also deploy your Storybook as a static app. This way, everyone in your team can view and review different states of UI components without starting a backend server or creating an account in your app.
-
-**Here’s how to setup your app with Storybook:**
-
-First, install the following npm package globally:
-
-```sh
-npm install -g getstorybook
-```
-
-Then, run the following command inside your app’s directory:
-
-```sh
-getstorybook
-```
-
-After that, follow the instructions on the screen.
-
-Learn more about React Storybook:
-
-* Screencast: [Getting Started with React Storybook](https://egghead.io/lessons/react-getting-started-with-react-storybook)
-* [GitHub Repo](https://github.com/kadirahq/react-storybook)
-* [Documentation](https://getstorybook.io/docs)
-* [Snapshot Testing](https://github.com/kadirahq/storyshots) with React Storybook
-
-## Making a Progressive Web App
-
-You can turn your React app into a [Progressive Web App](https://developers.google.com/web/progressive-web-apps/) by following the steps in [this repository](https://github.com/jeffposnick/create-react-pwa).
-
-## Deployment
-
-`npm run build` creates a `build` directory with a production build of your app. Set up your favourite HTTP server so that a visitor to your site is served `index.html`, and requests to static paths like `/static/js/main.<hash>.js` are served with the contents of the `/static/js/main.<hash>.js` file. For example, Python contains a built-in HTTP server that can serve static files:
-
-```sh
-cd build
-python -m SimpleHTTPServer 9000
-```
-
-If you're using [Node](https://nodejs.org/) and [Express](http://expressjs.com/) as a server, it might look like this:
-
-```javascript
-const express = require('express');
-const path = require('path');
-const app = express();
-
-app.use(express.static('./build'));
-
-app.get('/', function (req, res) {
-  res.sendFile(path.join(__dirname, './build', 'index.html'));
-});
-
-app.listen(9000);
-```
-
-Create React App is not opinionated about your choice of web server. Any static file server will do. The `build` folder with static assets is the only output produced by Create React App.
-
-However this is not quite enough if you use client-side routing. Read the next section if you want to support URLs like `/todos/42` in your single-page app.
-
-### Serving Apps with Client-Side Routing
-
-If you use routers that use the HTML5 [`pushState` history API](https://developer.mozilla.org/en-US/docs/Web/API/History_API#Adding_and_modifying_history_entries) under the hood (for example, [React Router](https://github.com/ReactTraining/react-router) with `browserHistory`), many static file servers will fail. For example, if you used React Router with a route for `/todos/42`, the development server will respond to `localhost:3000/todos/42` properly, but an Express serving a production build as above will not.
-
-This is because when there is a fresh page load for a `/todos/42`, the server looks for the file `build/todos/42` and does not find it. The server needs to be configured to respond to a request to `/todos/42` by serving `index.html`. For example, we can amend our Express example above to serve `index.html` for any unknown paths:
-
-```diff
- app.use(express.static('./build'));
-
--app.get('/', function (req, res) {
-+app.get('/*', function (req, res) {
-   res.sendFile(path.join(__dirname, './build', 'index.html'));
- });
-```
-
-Now requests to `/todos/42` will be handled correctly both in development and in production.
-
-### Building for Relative Paths
-
-By default, Create React App produces a build assuming your app is hosted at the server root.<br>
-To override this, specify the `homepage` in your `package.json`, for example:
-
-```js
-  "homepage": "http://mywebsite.com/relativepath",
-```
-
-This will let Create React App correctly infer the root path to use in the generated HTML file.
-
-
-### Firebase
-
-Install the Firebase CLI if you haven't already by running `npm install -g firebase-tools`. Sign up for a [Firebase account](https://console.firebase.google.com/) and create a new project. Run `firebase login` and login with your previous created Firebase account.
-
-Then run the `firebase init` command from your project's root. You need to choose the **Hosting: Configure and deploy Firebase Hosting sites** and choose the Firebase project you created in the previous step. You will need to agree with `database.rules.json` being created, choose `build` as the public directory, and also agree to **Configure as a single-page app** by replying with `y`.
-
-```sh
-    === Project Setup
-
-    First, let's associate this project directory with a Firebase project.
-    You can create multiple project aliases by running firebase use --add,
-    but for now we'll just set up a default project.
-
-    ? What Firebase project do you want to associate as default? Example app (example-app-fd690)
-
-    === Database Setup
-
-    Firebase Realtime Database Rules allow you to define how your data should be
-    structured and when your data can be read from and written to.
-
-    ? What file should be used for Database Rules? database.rules.json
-    ✔  Database Rules for example-app-fd690 have been downloaded to database.rules.json.
-    Future modifications to database.rules.json will update Database Rules when you run
-    firebase deploy.
-
-    === Hosting Setup
-
-    Your public directory is the folder (relative to your project directory) that
-    will contain Hosting assets to uploaded with firebase deploy. If you
-    have a build process for your assets, use your build's output directory.
-
-    ? What do you want to use as your public directory? build
-    ? Configure as a single-page app (rewrite all urls to /index.html)? Yes
-    ✔  Wrote build/index.html
-
-    i  Writing configuration info to firebase.json...
-    i  Writing project information to .firebaserc...
-
-    ✔  Firebase initialization complete!
-```
-
-Now, after you create a production build with `npm run build`, you can deploy it by running `firebase deploy`.
-
-```sh
-    === Deploying to 'example-app-fd690'...
-
-    i  deploying database, hosting
-    ✔  database: rules ready to deploy.
-    i  hosting: preparing build directory for upload...
-    Uploading: [==============================          ] 75%✔  hosting: build folder uploaded successfully
-    ✔  hosting: 8 files uploaded successfully
-    i  starting release process (may take several minutes)...
-
-    ✔  Deploy complete!
-
-    Project Console: https://console.firebase.google.com/project/example-app-fd690/overview
-    Hosting URL: https://example-app-fd690.firebaseapp.com
-```
-
-For more information see [Add Firebase to your JavaScript Project](https://firebase.google.com/docs/web/setup).
-
-### GitHub Pages
-
->Note: this feature is available with `react-scripts@0.2.0` and higher.
-
-#### Step 1: Add `homepage` to `package.json`
-
-**The step below is important!**<br>
-**If you skip it, your app will not deploy correctly.**
-
-Open your `package.json` and add a `homepage` field:
-
-```js
-  "homepage": "https://myusername.github.io/my-app",
-```
-
-Create React App uses the `homepage` field to determine the root URL in the built HTML file.
-
-#### Step 2: Install `gh-pages` and add `deploy` to `scripts` in `package.json`
-
-Now, whenever you run `npm run build`, you will see a cheat sheet with instructions on how to deploy to GitHub Pages.
-
-To publish it at [https://myusername.github.io/my-app](https://myusername.github.io/my-app), run:
-
-```sh
-npm install --save-dev gh-pages
-```
-
-Add the following script in your `package.json`:
-
-```js
-  // ...
-  "scripts": {
-    // ...
-    "deploy": "npm run build&&gh-pages -d build"
-  }
-```
-
-(Note: the lack of whitespace is intentional.)
-
-#### Step 3: Deploy the site by running `npm run deploy`
-
-Then run:
-
-```sh
-npm run deploy
-```
-
-#### Step 4: Ensure your project's settings use `gh-pages`
-
-Finally, make sure **GitHub Pages** option in your GitHub project settings is set to use the `gh-pages` branch:
-
-<img src="http://i.imgur.com/HUjEr9l.png" width="500" alt="gh-pages branch setting">
-
-#### Step 5: Optionally, configure the domain
-
-You can configure a custom domain with GitHub Pages by adding a `CNAME` file to the `public/` folder.
-
-#### Notes on client-side routing
-
-GitHub Pages doesn't support routers that use the HTML5 `pushState` history API under the hood (for example, React Router using `browserHistory`). This is because when there is a fresh page load for a url like `http://user.github.io/todomvc/todos/42`, where `/todos/42` is a frontend route, the GitHub Pages server returns 404 because it knows nothing of `/todos/42`. If you want to add a router to a project hosted on GitHub Pages, here are a couple of solutions:
-
-* You could switch from using HTML5 history API to routing with hashes. If you use React Router, you can switch to `hashHistory` for this effect, but the URL will be longer and more verbose (for example, `http://user.github.io/todomvc/#/todos/42?_k=yknaj`). [Read more](https://github.com/reactjs/react-router/blob/master/docs/guides/Histories.md#histories) about different history implementations in React Router.
-* Alternatively, you can use a trick to teach GitHub Pages to handle 404 by redirecting to your `index.html` page with a special redirect parameter. You would need to add a `404.html` file with the redirection code to the `build` folder before deploying your project, and you’ll need to add code handling the redirect parameter to `index.html`. You can find a detailed explanation of this technique [in this guide](https://github.com/rafrex/spa-github-pages).
-
-### Heroku
-
-Use the [Heroku Buildpack for Create React App](https://github.com/mars/create-react-app-buildpack).<br>
-You can find instructions in [Deploying React with Zero Configuration](https://blog.heroku.com/deploying-react-with-zero-configuration).
-
-### Modulus
-
-See the [Modulus blog post](http://blog.modulus.io/deploying-react-apps-on-modulus) on how to deploy your react app to Modulus.
-
-## Netlify
-
-**To do a manual deploy to Netlify's CDN:**
-
-```sh
-npm install netlify-cli
-netlify deploy
-```
-
-Choose `build` as the path to deploy.
-
-**To setup continuous delivery:**
-
-With this setup Netlify will build and deploy when you push to git or open a pull request:
-
-1. [Start a new netlify project](https://app.netlify.com/signup)
-2. Pick your Git hosting service and select your repository
-3. Click `Build your site`
-
-**Support for client-side routing:**
-
-To support `pushState`, make sure to create a `public/_redirects` file with the following rewrite rules:
-
-```
-/*  /index.html  200
-```
-
-When you build the project, Create React App will place the `public` folder contents into the build output.
-
-### Now
-
-See [this example](https://github.com/xkawi/create-react-app-now) for a zero-configuration single-command deployment with [now](https://zeit.co/now).
-
-### S3 and CloudFront
-
-See this [blog post](https://medium.com/@omgwtfmarc/deploying-create-react-app-to-s3-or-cloudfront-48dae4ce0af) on how to deploy your React app to Amazon Web Services [S3](https://aws.amazon.com/s3) and [CloudFront](https://aws.amazon.com/cloudfront/).
-
-### Surge
-
-Install the Surge CLI if you haven't already by running `npm install -g surge`. Run the `surge` command and log in you or create a new account. You just need to specify the *build* folder and your custom domain, and you are done.
-
-```sh
-              email: email@domain.com
-           password: ********
-       project path: /path/to/project/build
-               size: 7 files, 1.8 MB
-             domain: create-react-app.surge.sh
-             upload: [====================] 100%, eta: 0.0s
-   propagate on CDN: [====================] 100%
-               plan: Free
-              users: email@domain.com
-         IP Address: X.X.X.X
-
-    Success! Project is published and running at create-react-app.surge.sh
-```
-
-Note that in order to support routers that use HTML5 `pushState` API, you may want to rename the `index.html` in your build folder to `200.html` before deploying to Surge. This [ensures that every URL falls back to that file](https://surge.sh/help/adding-a-200-page-for-client-side-routing).
-
-## Troubleshooting
-
-### `npm test` hangs on macOS Sierra
-
-If you run `npm test` and the console gets stuck after printing `react-scripts test --env=jsdom` to the console there might be a problem with your [Watchman](https://facebook.github.io/watchman/) installation as described in [facebookincubator/create-react-app#713](https://github.com/facebookincubator/create-react-app/issues/713).
-
-We recommend deleting `node_modules` in your project and running `npm install` (or `yarn` if you use it) first. If it doesn't help, you can try one of the numerous workarounds mentioned in these issues:
-
-* [facebook/jest#1767](https://github.com/facebook/jest/issues/1767)
-* [facebook/watchman#358](https://github.com/facebook/watchman/issues/358)
-* [ember-cli/ember-cli#6259](https://github.com/ember-cli/ember-cli/issues/6259)
-
-It is reported that installing Watchman 4.7.0 or newer fixes the issue. If you use [Homebrew](http://brew.sh/), you can run these commands to update it:
-
-```
-watchman shutdown-server
-brew update
-brew reinstall watchman
-```
-
-You can find [other installation methods](https://facebook.github.io/watchman/docs/install.html#build-install) on the Watchman documentation page.
-
-If this still doesn't help, try running `launchctl unload -F ~/Library/LaunchAgents/com.github.facebook.watchman.plist`.
-
-There are also reports that *uninstalling* Watchman fixes the issue. So if nothing else helps, remove it from your system and try again.
-
-### `npm run build` silently fails
-
-It is reported that `npm run build` can fail on machines with no swap space, which is common in cloud environments. If [the symptoms are matching](https://github.com/facebookincubator/create-react-app/issues/1133#issuecomment-264612171), consider adding some swap space to the machine you’re building on, or build the project locally.
-
-## Something Missing?
-
-If you have ideas for more “How To” recipes that should be on this page, [let us know](https://github.com/facebookincubator/create-react-app/issues) or [contribute some!](https://github.com/facebookincubator/create-react-app/edit/master/packages/react-scripts/template/README.md)

@@ -1,12 +1,19 @@
 {
   "name": "react-node-red",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "devDependencies": {
     "react-scripts": "0.8.4"
   },
   "dependencies": {
+    "bootstrap": "^3.3.7",
+    "lodash": "^4.17.2",
+    "mqtt": "1.14.1",
+    "node-uuid": "^1.4.7",
     "react": "^15.4.1",
+    "react-bootstrap": "^0.30.7",
+    "react-bootstrap-date-picker": "^3.7.0",
+    "react-bootstrap-table": "^2.6.0",
     "react-dom": "^15.4.1"
   },
   "scripts": {
