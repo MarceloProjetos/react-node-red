@@ -7,7 +7,7 @@ start /MIN /D "c:\Program Files\nodejs" cmd /k node-red -v
 REM REACT-CREAT-APP
 start /D "c:\Desenvolvimento\git\React\react-bootstrap-exemplo" cmd /k npm start
 
-REM FireFox
+REM FireFox i
 start /MIN /D "c:\Program Files (x86)\Mozilla Firefox\" cmd /k firefox.exe
 
 
