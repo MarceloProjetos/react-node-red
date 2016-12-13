@@ -21,15 +21,22 @@ import { assign, omit } from 'lodash';
 import mqtt from 'mqtt/lib/connect';
 
 const clientId = 'lancamento_' + (1 + Math.random() * 4294967295).toString(16);
+const BrazilianDayLabels = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'];
+const BrazilianMonthLabels = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Octubro', 'Novembro', 'Dezembro'];
+
 
 export default class LancamentoForm extends Component {
   constructor(props) {
     super(props);
 
+    var d = new Date();
+    d.setUTCDate(d.getUTCDate());
+    console.log("valor de n =  " + d);
+
     this.state = { 
       _id: null,
       conta: 0, // conta selecionada
-      data: new Date().toISOString(),
+      data: d.toISOString(),
       cheque: '',
       liquidado: false,
       valor: '',
@@ -162,8 +169,13 @@ export default class LancamentoForm extends Component {
     }.bind(this));    
   }
 
-  handleChangeData(event) {
-    this.setState({ data: event.target.value })
+  handleChangeData(data) {
+    //var hiddenInputElement = document.getElementById("DATA");
+    //console.log(hiddenInputElement.getAttribute('data-formattedvalue'));
+    console.log("data = " + data);
+    this.setState({ 
+      data: data
+    })
   }
 
   handleSaveOk(msg) {
@@ -249,7 +261,7 @@ export default class LancamentoForm extends Component {
                       {/*<ControlLabel>Input with success and feedback icon</ControlLabel>*/}
                       {/*<FormControl type="text" defaultValue="10/10/2016" />*/}
                       {/*<FormControl.Feedback />*/}
-                      <DatePicker ref="data" value={this.state.data} onChange={this.handleChangeData} />
+                      <DatePicker id="DATA" ref="data" dayLabels={BrazilianDayLabels} monthLabels={BrazilianMonthLabels} value={this.state.data} onChange={this.handleChangeData} />
                     </FormGroup>
                   </Col>
                 </Row>
