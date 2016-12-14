@@ -21,8 +21,8 @@ export default class NovaContaForm extends Component {
     this.state = {
       _id:    uuid.v4(),
       selecionada: false,
-      banco:  'ALTAMIRA',
-      conta:  '9634',
+      banco:  '',
+      conta:  '',
       agencia: '',
       descricao: '',
 
@@ -84,8 +84,8 @@ export default class NovaContaForm extends Component {
       this.state.topics[topic] && this.state.topics[topic](message.toString());
 
     }.bind(this))
-    console.log('ClientID criado em nova conta = ' + clientId + '\n');
-    console.log('this.props.clientId  recebido em nova conta = ' + this.props.clientId + '\n');
+    //console.log('ClientID criado em nova conta = ' + clientId + '\n');
+    //console.log('this.props.clientId  recebido em nova conta = ' + this.props.clientId + '\n');
   }
 
   componentWillUnmount() {
