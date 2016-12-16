@@ -77,7 +77,7 @@ export default class LancamentoForm extends Component {
       qos: 0,
       retain: false,
       clean: true,
-      keepAlive: 30, // 30 sec.
+      keepAlive: 30, 
       clientId: clientId
     }
 
@@ -87,7 +87,8 @@ export default class LancamentoForm extends Component {
 
       this.client.subscribe(
         ['financeiro/lancamento/contas/erros/'   + clientId, 
-        'financeiro/lancamento/contas/carregado/'], 
+        'financeiro/lancamento/contas/carregado/',
+        'financeiro/lancamento/contas/incluido/' + clientId], 
          function(err, granted) { 
           !err ? 
             this.setState(
@@ -96,14 +97,15 @@ export default class LancamentoForm extends Component {
                           this.state.topics, 
                           {
                             [granted[0].topic]: this.handleError,   
-                            [granted[1].topic]: this.handleIncluido
+                            [granted[1].topic]: this.handleIncluido,
+                            [granted[2].topic]: this.handleSaveOk
                           }
                         )
               },
               this.carregaLista
             ) 
           : 
-            alert('Erro ao se inscrever no topico: ' + err);
+            alert('Erro ao se inscrever no topico:' + err);
         }.bind(this)
       );  
     }.bind(this));
@@ -134,11 +136,11 @@ export default class LancamentoForm extends Component {
   }
 
   handleIncluir() {
-    this.setState({ valor: parseFloat(this.state.valor.replace(',', '.') )}, this.enviar)
+    this.setState({ valor: parseFloat((this.state.valor && this.state.valor.replace(',', '-').replace('.', '').replace('-', '.')) || 0)}, this.enviar)
   } 
 
   enviar(msg){
-    console.log('lancamentoID: ' + clientId + '\nEnviado: \n' + JSON.stringify(omit(this.state, ['topics','contas']), null, 2));
+    //console.log('lancamentoID: ' + clientId + '\nEnviado: \n' + JSON.stringify(omit(this.state, ['topics','contas']), null, 2));
     // enviar dados para fila
     this.client.publish(
             'financeiro/lancamento/contas/incluir/' + clientId, 
@@ -167,7 +169,7 @@ export default class LancamentoForm extends Component {
   }
 
   handleSaveOk(msg) {
-   alert('Lancamento com sucesso#: ' + msg);
+   alert('Lancamento feito com sucesso#: ' + msg);
    this.props.onClose && this.props.onClose();
   }
 
@@ -211,6 +213,16 @@ export default class LancamentoForm extends Component {
     this.setState({ observacao: event.target.value })
   }
 
+  DataValidationState() {
+    const x = this.state.data;
+    if ((x!==0)&&(x!==null)&&(x!==undefined)){
+        return 'success';
+    } else {
+        return 'error';
+    }
+  }
+
+
   ChequeValidationState() {
     var regex = /^\$?[0-9]+((\-[0-9][0-9])|(\-[0-9]))?$/;
     const length = this.state.cheque.length;
@@ -224,14 +236,14 @@ export default class LancamentoForm extends Component {
   }
 
   setGender(event) {
-    console.log(event.target.value);
+    //console.log(event.target.value);
     this.setState({operacao:event.target.value});
   }
 
   ValorValidationState() {
-    var regex = /^[0-9]{1,3}([.]([0-9]{3}))*[,]([.]{0})[0-9]{0,2}$/;
+    var regex = /^[0-9]{1,9}([.]([0-9]{3}))*[,]([.]{0})[0-9]{0,2}$/;
     const length = this.state.valor.length;
-     if (regex.test(this.state.valor)&&(length<30)){
+     if (regex.test(this.state.valor)&&(length<20)){
       //console.log('valor = ' + (this.state.observacao));
       return 'success';
     } else {
@@ -240,7 +252,7 @@ export default class LancamentoForm extends Component {
   }
 
   OBSValidationState() {//   /^[0-9]{1,3}([.]([0-9]{3}))*[,]([.]{0})[0-9]{0,2}$/
-    var regex = /^\$?[a-zA-Z0-9.ãõ_%\-\s]*?$/;
+    var regex = /^\$?[a-zA-Z0-9.ã/õ_%\-\s]*?$/;
     const length = this.state.observacao.length;
      if (regex.test(this.state.observacao)&&(length<30)){
       //console.log('valor = ' + (this.state.observacao));
@@ -283,7 +295,7 @@ export default class LancamentoForm extends Component {
                 <Row style={{paddingTop: 20}} >
                   <Col xs={12} md={1}> DATA</Col>
                   <Col xs={12} md={3}> 
-                    <FormGroup controlId="data" validationState="success">
+                    <FormGroup controlId="data" validationState={this.DataValidationState()}>
                       {/*<ControlLabel>Input with success and feedback icon</ControlLabel>*/}
                       {/*<FormControl type="text" defaultValue="10/10/2016" />*/}
                       {/*<FormControl.Feedback />*/}
@@ -320,9 +332,9 @@ export default class LancamentoForm extends Component {
                   <Col xs={12} md={3}>
                     <FormGroup>
                       <div onChange={this.setGender.bind(this)}>
-                       <input type="radio" value="Credito" name="operacao" style={{margin:'5'}}/> Credito 
+                       <input type="radio" value="credito" name="operacao" style={{margin:5}}/> Credito 
 
-                       <input type="radio" value="Debito"  name="operacao" style={{margin:'5'}}/> Debito 
+                       <input type="radio" value="debito"  name="operacao" style={{margin:5}}/> Debito 
                       </div>
                     </FormGroup>
                   </Col>
@@ -346,8 +358,15 @@ export default class LancamentoForm extends Component {
                     </FormGroup>
                   </Col>
                   <Col xs={12} md={2} mdOffset={2}>
-                        <Button bsStyle="success" onClick={this.handleIncluir} >
-                          <div><Glyphicon glyph="ok" /><span>  Confirmar</span></div>
+                        <Button bsStyle="success" onClick={this.handleIncluir} 
+                          disabled={
+                            (this.ValorValidationState() === 'error')|| 
+                            (this.OBSValidationState()   === 'error')||
+                            (this.ChequeValidationState()=== 'error')||
+                            (this.DataValidationState()  === 'error')||
+                            (this.state.operacao === '')
+                          }>
+                            <div><Glyphicon glyph="ok" /><span>  Confirmar</span></div>
                         </Button>
                   </Col>
                 </Row>
