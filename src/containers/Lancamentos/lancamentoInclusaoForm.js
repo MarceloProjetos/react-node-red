@@ -12,7 +12,6 @@ import {
   FormControl,
   ControlLabel,
   Checkbox,
-  Radio
 } from 'react-bootstrap';
 import DatePicker from 'react-bootstrap-date-picker';
 
@@ -43,6 +42,7 @@ export default class LancamentoForm extends Component {
       data: datetime,
       cheque: '',
       liquidado: false,
+      operacao:'',
       valor: '',
       observacao: '',
       // campos de controle, nao apagar, nao gravar
@@ -62,6 +62,7 @@ export default class LancamentoForm extends Component {
     this.handleSaveOk       = this.handleSaveOk.bind(this);
 
     this.console_log        = this.console_log.bind(this);
+    this.enviar             = this.enviar.bind(this);
     this.handleContaChange  = this.handleContaChange.bind(this);
     this.mostraContaSelecionada = this.mostraContaSelecionada.bind(this);
   }
@@ -133,13 +134,27 @@ export default class LancamentoForm extends Component {
   }
 
   handleIncluir() {
+    this.setState({ valor: parseFloat(this.state.valor.replace(',', '.') )}, this.enviar)
+  } 
+
+  enviar(msg){
     console.log('lancamentoID: ' + clientId + '\nEnviado: \n' + JSON.stringify(omit(this.state, ['topics','contas']), null, 2));
     // enviar dados para fila
     this.client.publish(
             'financeiro/lancamento/contas/incluir/' + clientId, 
             JSON.stringify(omit(this.state, ['topics','contas']))
           );
-  } 
+  }
+
+  console_log(msg) {
+    console.log('Modou:' + this.state.liquidado)
+  }
+
+  handleCheckboxChange(value) {
+    //console.log('Antes: ' + this.state.liquidado)
+    this.setState({liquidado: !this.state.liquidado},this.console_log)
+    //console.log('Depois: ' + this.state.liquidado)
+  }
 
   handleChangeData(data) {
     //var hiddenInputElement = document.getElementById("DATA");
@@ -162,16 +177,6 @@ export default class LancamentoForm extends Component {
     //alert('aqui: ' + msg);
   }
 
-  console_log(msg) {
-    console.log('Modou:' + this.state.liquidado)
-  }
-
-  handleCheckboxChange(value) {
-    //console.log('Antes: ' + this.state.liquidado)
-    this.setState({liquidado: !this.state.liquidado},this.console_log)
-    //console.log('Depois: ' + this.state.liquidado)
-  }
-
   handleContaChange(element) {
     this.setState({conta: element.target.value}, this.mostraContaSelecionada);
   }
@@ -185,8 +190,18 @@ export default class LancamentoForm extends Component {
   }
 
   handleChangeValor(event) {
-    this.setState({ valor: event.target.value })
+    this.setState({ valor: event.target.value.substring(3) })
   }
+
+  /* <div id="services"> {services}
+                        <p id="total">Total <b>R$ {this.state.total.toFixed(2).replace('.', ',')}</b></p>
+  </div>
+
+  render: function(){
+        return  <p className={ this.state.active ? 'active' : '' } onClick={this.clickHandler}>
+                    {this.props.name} <b>R$ {this.props.price.toFixed(2).replace('.', ',')}</b>
+                </p>;
+                */
 
   handleChangeCheque(event) {
     this.setState({ cheque: event.target.value })
@@ -208,6 +223,32 @@ export default class LancamentoForm extends Component {
     }
   }
 
+  setGender(event) {
+    console.log(event.target.value);
+    this.setState({operacao:event.target.value});
+  }
+
+  ValorValidationState() {
+    var regex = /^[0-9]{1,3}([.]([0-9]{3}))*[,]([.]{0})[0-9]{0,2}$/;
+    const length = this.state.valor.length;
+     if (regex.test(this.state.valor)&&(length<30)){
+      //console.log('valor = ' + (this.state.observacao));
+      return 'success';
+    } else {
+      return 'error';
+    }
+  }
+
+  OBSValidationState() {//   /^[0-9]{1,3}([.]([0-9]{3}))*[,]([.]{0})[0-9]{0,2}$/
+    var regex = /^\$?[a-zA-Z0-9.ãõ_%\-\s]*?$/;
+    const length = this.state.observacao.length;
+     if (regex.test(this.state.observacao)&&(length<30)){
+      //console.log('valor = ' + (this.state.observacao));
+      return 'success';
+    } else {
+      return 'error';
+    }
+  }
 
   render() {
 
@@ -269,17 +310,20 @@ export default class LancamentoForm extends Component {
                 <Row>
                   <Col xs={12} md={1}>Valor</Col>
                   <Col xs={12} md={3}>
-                    <FormGroup controlId="valor" validationState="success">
+                    <FormGroup controlId="valor" validationState={this.ValorValidationState()}>
                       {/*<ControlLabel>Input with success and feedback icon</ControlLabel>*/}
-                      <FormControl type="text" ref="valor" value={this.state.valor} onChange={this.handleChangeValor} />
+                      <FormControl type="text" ref="valor" value={'R$ ' + this.state.valor} onChange={this.handleChangeValor} />
                       <FormControl.Feedback />
                     </FormGroup>
                   </Col>
-                  <Col xs={12} md={1}>Operação</Col>
+                  <Col xs={12} md={1}>Operação </Col>
                   <Col xs={12} md={3}>
                     <FormGroup>
-                      <Radio inline> Debito   </Radio>  {' '}
-                      <Radio inline> Credito  </Radio>  {' '}
+                      <div onChange={this.setGender.bind(this)}>
+                       <input type="radio" value="Credito" name="operacao" style={{margin:'5'}}/> Credito 
+
+                       <input type="radio" value="Debito"  name="operacao" style={{margin:'5'}}/> Debito 
+                      </div>
                     </FormGroup>
                   </Col>
                   <Col xs={12} md={2} mdOffset={2}>
@@ -293,9 +337,9 @@ export default class LancamentoForm extends Component {
                 </Row>
 
                 <Row>
-                  <Col xs={12} md={1}>Observação </Col>
+                  <Col xs={12} md={1}>OBS </Col>
                   <Col xs={12} md={7}>
-                    <FormGroup controlId="observacao" validationState="success">
+                    <FormGroup controlId="observacao" validationState={this.OBSValidationState()}>
                       {/*<ControlLabel>Input with success and feedback icon</ControlLabel>*/}
                       <FormControl type="text" ref="observacao" value={this.state.observacao} onChange={this.handleChangeObs} />
                       <FormControl.Feedback />
