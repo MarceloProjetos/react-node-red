@@ -506,6 +506,18 @@ If your system is Windows 32bits
     
 I use as webadmin the "**mongobooster**"
 
+Como Instalar o Java com Apt-Get
+   https://www.digitalocean.com/community/tutorials/como-instalar-o-java-com-apt-get-no-ubuntu-16-04-pt
+
+Node-red
+  https://www.digitalocean.com/community/tutorials/how-to-connect-your-internet-of-things-with-node-red-on-ubuntu-16-04
+
+Inicialização
+  https://www.vivaolinux.com.br/dica/Colocando-script-na-inicializacao-do-Linux-(Ubuntu-Debian)
+
+How to Install MongoDB on Ubuntu 
+  https://www.digitalocean.com/community/tutorials/how-to-install-mongodb-on-ubuntu-16-04
+
 ## Table of UI Components
 
 - [Duplicatas](#duplicatas)
