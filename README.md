@@ -23,7 +23,79 @@ This project is an React page that accesses a "MQTT" server, that accesses the "
 | [Node-Red][1] | Node-RED is a tool for wiring together hardware devices, APIs and online services. |
 | [MongoDB][5]  | It is a graphical tool for control together hardware devices, online services and others NPM library. |
 
-## 1-Installation NODE-JS and Python
+## 1-Java in Linux
+
+Primeiro, atualize o índice de pacotes.
+
+    sudo apt-get update
+    
+Depois, instale o Java. Especificamente, esse comando irá instalar o Java Runtime Environment (JRE).
+
+    sudo apt-get install default-jre
+
+1.PPA repository with installer scripts for the latest Java 8 and 9 PPA.
+
+Open terminal (Ctrl+Alt+T) and run the command
+
+    sudo add-apt-repository ppa:webupd8team/java
+
+Type in your password when it asks and hit Enter.
+
+2. Update and install the installer script:
+
+Run commands to update system package index and install Java installer script:
+
+    sudo apt update; sudo apt install oracle-java8-installer
+
+You may replace oracle-java8-installer with oracle-java9-installer to install Java 9.
+
+While the install process, you have to accept Java license to continue downloading & installing Java binaries.
+
+3. Check the Java version
+
+To check the Java version after installing the package, run command:
+
+    javac -version
+
+4. Set Java environment variables
+
+The PPA also contains a package to automatically set Java environment variables, just run command:
+
+    sudo apt install oracle-java8-set-default
+    
+Gerenciando o Java
+
+Podem haver múltiplas versões do Java em um servidor. Você pode configurar qual versão é a padrão para uso na linha de comando através do uso do update-alternatives, que gerencia quais links simbólicos são usados por diferentes comandos.
+
+    sudo update-alternatives --config java
+
+A saída será parecida com o seguinte. Nesse caso, isso é como a saída se parecerá com todas as versões de Java mencionadas acima instaladas.
+Output
+
+There are 5 choices for the alternative java (providing /usr/bin/java).
+
+    Selection    Path                                            Priority   Status
+  ------------------------------------------------------------
+  * 0            /usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java   1081      auto mode
+    1            /usr/lib/jvm/java-6-oracle/jre/bin/java          1         manual mode
+    2            /usr/lib/jvm/java-7-oracle/jre/bin/java          2         manual mode
+    3            /usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java   1081      manual mode
+    4            /usr/lib/jvm/java-8-oracle/jre/bin/java          3         manual mode
+    5            /usr/lib/jvm/java-9-oracle/bin/java              4         manual mode
+
+  Press enter to keep the current choice, or type selection number
+  
+Resumindo
+
+    sudo apt-get purge openjdk*
+    sudo add-apt-repository ppa:webupd8team/java
+    sudo apt-get update
+    sudo apt-get install oracle-java8-installer
+    sudo apt-get install oracle-java8-set-default
+
+## 2-Installation NODE-JS
+ 
+**Windows**
 
 Access the site [NodeJS][3]
 
@@ -33,7 +105,35 @@ Now install the **phyton**. In this tutorial I used [python-2.7.10][8]
 
 Wait for the installation and restart the machine to continue.
 
-## 2- Create-react-app installation  
+**Linux**
+
+To install Node.js, type the following command in your terminal:
+
+    curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
+    sudo apt-get install -y nodejs
+    
+**Upgrading node-js linux**
+
+If you have nodejs already installed and want to update, then first remove current instalation and install it again using scripts above.
+
+    sudo apt-get purge nodejs npm
+    
+## 3-Then install the Node package manager, NPM
+
+    sudo apt-get install npm
+
+Create a symbolic link for node, as many Node.js tools use this name to execute.
+
+    sudo ln -s /usr/bin/nodejs /usr/bin/node
+
+Now we should have both the Node and npm commands working:
+```	
+    node -v
+      v0.10.25
+    npm -v
+      1.3.10
+```
+## 3- Create-react-app installation  
 
 Install it once globally:
 ```
@@ -49,7 +149,7 @@ npm start
 Then open [http://localhost:3000/](http://localhost:3000/) to see your app.<br>
 When you’re ready to deploy to production, create a minified bundle with `npm run build`.
 
-## 3- Adding Bootstrap
+## 4- Adding Bootstrap
 
 Install React Bootstrap and Bootstrap from NPM. React Bootstrap does not include Bootstrap CSS so this needs to be installed as well:
 
@@ -73,7 +173,7 @@ import { Navbar, Jumbotron, Button } from 'react-bootstrap';
 ```
 Now you are ready to use the imported React Bootstrap components within your component hierarchy defined in the render method.
 
-## 4- Adding mqtt, lodash and node-uuid
+## 5- Adding mqtt, lodash and node-uuid
 
 MQTT.js is a client library for the [MQTT](http://mqtt.org/) protocol, written
 in JavaScript for node.js and the browser.
@@ -89,7 +189,7 @@ numbers, objects, strings, etc.
 ```
 npm install lodash --save
 ```
-## 5-Broker Installation "ActiveMQ" 
+## 6-Broker Installation "ActiveMQ" 
 
 Access the site [ActiveMQ][2]
 Look for "Downloads" and download the version **"Windows Distribution"**
@@ -133,7 +233,9 @@ In my case...
 
 ----
 
-## 5-Node-red
+## 6-Node-red
+
+**Windows**
 
 Run the following command in the root directory of your Node-RED install
 
@@ -149,6 +251,28 @@ Run the following command in root mode. Of the libraries installation.
 Run the command prompt **"node-red"**
 
 Open <http://localhost:1880>
+
+**Installing Node-RED in Linux**
+
+Use npm to install node-red and a helper utility called node-red-admin.
+
+    sudo npm install -g --unsafe-perm node-red node-red-admin
+
+npm normally installs its packages into your current directory. Here, we use the -g flag to install packages 'globally' so they're placed in standard system locations such as /usr/local/bin. The --unsafe-perm flag helps us avoid some errors that can pop up when npm tries to compile native modules (modules written in a compiled language such as C or C++ vs. JavaScript).
+
+After a bit of downloading and file shuffling, you'll be returned to the normal command line prompt. Let's test our install.
+
+First, we'll need to open up a port on our firewall. Node-RED defaults to using port 1880, so let's allow that.
+
+    sudo ufw allow 1880
+
+And now launch Node-RED itself. No sudo is necessary, as port 1880 is high enough to not require root privileges.
+
+    node-red
+
+Some "Welcome to Node-RED" messages will print to the terminal. On your computer, point a web browser to port 1880 of the server.
+
+**Restore a FLOW**
 
 To restore a node-red flow with Ctrl-I command or the menu, "Menu > Import > Clipboard".
 
@@ -486,13 +610,15 @@ ___
 
 Enter at the prompt where you run "mongo.exe" run commands below:
 
-    use db 					            <--Create a database called db. If exists it enters in the collection.
+    use db 					                  <--Create a database called db. If exists it enters in the collection.
     db.createCollection('parametros')	<--Create a collection called parametros
     db.createCollection('log_erro')		<--Create a collection called log_erro
-    db.createCollection('indice')		<--Create a collection called indice
-    show dbs 				            <--Show names of banks and their sizes
-    show collections			        <--Displays the collections in the current bank
-    exit					            <--Exit to mongo shell or **Ctrl + C**
+    db.createCollection('indice')		  <--Create a collection called indice
+    db.createCollection('lancamentos')		<--Create a collection called lancamentos
+    db.createCollection('contas')		  <--Create a collection called contas
+    show dbs 				                  <--Show names of banks and their sizes
+    show collections			            <--Displays the collections in the current bank
+    exit					                    <--Exit to mongo shell or **Ctrl + C**
 
 Installing the service for MongoDB automatically start on Windows **boot**.
 
@@ -505,9 +631,6 @@ If your system is Windows 32bits
     c:\Program Files\MongoDB\Server\3.2\bin\mongod --journal --config "c:\data\mongod.cfg" --install
     
 I use as webadmin the "**mongobooster**"
-
-Como Instalar o Java com Apt-Get
-   https://www.digitalocean.com/community/tutorials/como-instalar-o-java-com-apt-get-no-ubuntu-16-04-pt
 
 Node-red
   https://www.digitalocean.com/community/tutorials/how-to-connect-your-internet-of-things-with-node-red-on-ubuntu-16-04
@@ -568,29 +691,6 @@ You may also serve it locally with a static server:
 Open http://localhost:9000
 
 ---
-
-
-## Folder Structure
-
-After creation, your project should look like this:
-
-```
-my-app/
-  README.md
-  node_modules/
-  package.json
-  public/
-    index.html
-    favicon.ico
-  src/
-    App.css
-    App.js
-    App.test.js
-    index.css
-    index.js
-    logo.svg
-```
-
 
 #Author
 
