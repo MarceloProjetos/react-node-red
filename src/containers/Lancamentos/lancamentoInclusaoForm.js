@@ -226,7 +226,7 @@ export default class LancamentoForm extends Component {
   ChequeValidationState() {
     var regex = /^\$?[0-9]+((\-[0-9][0-9])|(\-[0-9]))?$/;
     const length = this.state.cheque.length;
-    if ((length===1)||(length===0)){
+    if ((length===0)){
         return 'warning';
     } else if(regex.test(this.state.cheque)&&(length<20)) {
         return 'success';
@@ -241,7 +241,7 @@ export default class LancamentoForm extends Component {
   }
 
   ValorValidationState() {
-    var regex = /^[0-9]{1,9}([.]([0-9]{3}))*[,]([.]{0})[0-9]{0,2}$/;
+    var regex = /^[0-9]{1,9}([.]([0-9]{3}))*[,]([.]{0})[0-9]{2}$/;
     const length = this.state.valor.length;
      if (regex.test(this.state.valor)&&(length<20)){
       //console.log('valor = ' + (this.state.observacao));
