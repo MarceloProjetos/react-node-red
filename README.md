@@ -724,11 +724,97 @@ If your system is Windows 32bits
     
 I use as webadmin the "**mongobooster**"
 
-Inicialização
-  https://www.vivaolinux.com.br/dica/Colocando-script-na-inicializacao-do-Linux-(Ubuntu-Debian)
+** MongoDB in Linux **
 
+Step 1 — Adding the MongoDB Repository
+
+MongoDB is already included in Ubuntu package repositories, but the official MongoDB repository provides most up-to-date version and is the recommended way of installing the software. In this step, we will add this official repository to our server.
+
+Ubuntu ensures the authenticity of software packages by verifying that they are signed with GPG keys, so we first have to import they key for the official MongoDB repository.
+    
+    sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 0C49F3730359A14518585931BC711F9BA15703C6
+
+After successfully importing the key, you will see the output:
+
+    gpg: Total number processed: 1
+    gpg:               imported: 1  (RSA: 1)
+    
+Create a /etc/apt/sources.list.d/mongodb-org-3.4.list file for MongoDB.
+**Ubuntu 16.04**
+
+    echo "deb [ arch=amd64,arm64 ] http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.4.list
+
+**Debian 8 “Jessie”**
+
+    echo "deb http://repo.mongodb.org/apt/debian jessie/mongodb-org/3.4 main" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.4.list
+
+
+Reload local package database.
+
+Issue the following command to reload the local package database:
+
+    sudo apt-get update
+
+
+Install the MongoDB packages.
+
+    sudo apt-get install -y mongodb-org
+    
+We'll create a unit file to manage the MongoDB service. Create a configuration file named mongodb.service in the /etc/systemd/system directory using nano or your favorite text editor.
+
+    sudo nano /etc/systemd/system/mongodb.service
+
+Paste in the following contents, then save and close the file.
+
+    [Unit]
+    Description=High-performance, schema-free document-oriented database
+    After=network.target
+
+    [Service]
+    User=mongodb
+    ExecStart=/usr/bin/mongod --quiet --config /etc/mongod.conf
+
+    [Install]
+    WantedBy=multi-user.target
+
+Next, start the newly created service with systemctl
+    
+    sudo systemctl start mongodb
+
+While there is no output to this command, you can also use systemctl to check that the service has started properly.
+
+    sudo systemctl status mongodb
+
+The last step is to enable automatically starting MongoDB when the system starts.
+
+    sudo systemctl enable mongodb
+    
+In most cases, MongoDB should be accessed only from certain trusted locations, such as another server hosting an application. To accomplish this task, you can allow access on MongoDB's default port while specifying the IP address of another server that will be explicitly allowed to connect.
+
+    sudo ufw allow from your_other_server_ip/32 to any port 27017
+
+You can verify the change in firewall settings with ufw.
+
+    sudo ufw status
+    
 How to Install MongoDB on Ubuntu 
   https://www.digitalocean.com/community/tutorials/how-to-install-mongodb-on-ubuntu-16-04
+
+** How to inicialize all programs on boot **
+On windows with file.bat
+
+    REM ACTIVEMQ START
+    start /MIN /D "c:\Desenvolvimento\apache-activemq-5.14.1-bin\bin" cmd /k activemq start
+
+    REM NODE-RED
+    start /MIN /D "c:\Program Files\nodejs" cmd /k node-red -v
+
+    REM REACT-CREAT-APP
+    start /D "c:\Desenvolvimento\git\React\react-node-red" cmd /k npm start
+
+On linux
+    
+    https://www.vivaolinux.com.br/dica/Colocando-script-na-inicializacao-do-Linux-(Ubuntu-Debian)
 
 ## Table of UI Components
 
