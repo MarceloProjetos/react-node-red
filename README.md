@@ -55,7 +55,7 @@ While the install process, you have to accept Java license to continue downloadi
 
 To check the Java version after installing the package, run command:
 
-    javac -version
+    java -version
 
 4. Set Java environment variables
 
@@ -85,7 +85,7 @@ There are 5 choices for the alternative java (providing /usr/bin/java).
 
   Press enter to keep the current choice, or type selection number
   
-Resumindo
+Resumindo a instalação do java em linux...
 
     sudo apt-get purge openjdk*
     sudo add-apt-repository ppa:webupd8team/java
@@ -131,9 +131,9 @@ Create a symbolic link for node, as many Node.js tools use this name to execute.
 Now we should have both the Node and npm commands working:
 ```	
     node -v
-      v0.10.25
+      v6.9.2
     npm -v
-      1.3.10
+      v3.10.9
 ```
 ## 3- Create-react-app installation  
 
@@ -308,40 +308,45 @@ Copy and paste in the following, then save and close the file in **/etc/systemd/
 A full explanation of systemd service files is beyond this tutorial, but you can learn more by reading Systemd Essentials: Working with Services, Units, and the Journal.
 
 That said, let's break down some of the sections in our service file:
-/etc/systemd/system/node-red.service
+        
+    /etc/systemd/system/node-red.service
 
-[Unit]
-Description=Node-RED
-After=syslog.target network.target
+    [Unit]
+    Description=Node-RED
+    After=syslog.target network.target
 
 This describes our service and indicates that it should be started after networking and syslog are functioning.
-/etc/systemd/system/node-red.service
 
-[Service]
-ExecStart=/usr/local/bin/node-red-pi --max-old-space-size=128 -v
-Restart=on-failure
-KillSignal=SIGINT
+    /etc/systemd/system/node-red.service
+
+    [Service]
+    ExecStart=/usr/local/bin/node-red-pi --max-old-space-size=128 -v
+    Restart=on-failure
+    KillSignal=SIGINT
 
 ExecStart is the command needed to start our service. We call node-red-pi instead of plain node-red so we can pass some memory-saving options to Node.js. This should allow it to run well on any reasonably sized server, depending of course on how many flows you create in Node-RED (and how complicated they are). Restart=on-failure means systemd will try to restart Node-RED if it crashes, and KillSignal tells systemd the best way to quit Node-RED when it needs to shut down or restart the process.
-/etc/systemd/system/node-red.service
 
-# log output to syslog as 'node-red'
-SyslogIdentifier=node-red
-StandardOutput=syslog
+    /etc/systemd/system/node-red.service
+
+    # log output to syslog as 'node-red'
+    SyslogIdentifier=node-red
+    StandardOutput=syslog
 
 This sets the label used when logging, and logs all output to the syslog service.
-/etc/systemd/system/node-red.service
 
-# non-root user to run as
-WorkingDirectory=/home/sammy/
-User=sammy
-Group=sammy
+    /etc/systemd/system/node-red.service
+
+    # non-root user to run as
+    WorkingDirectory=/home/sammy/
+    User=sammy
+    Group=sammy
 
 We want to run Node-RED as our non-root user. The lines above tell systemd to launch Node-RED using our user and group, and from within our home directory.
-/etc/systemd/system/node-red.service
 
-[Install]
-WantedBy=multi-user.target
+    /etc/systemd/system/node-red.service
+
+    [Install]
+    WantedBy=multi-user.target
 
 WantedBy indicates the targets our service should run under. In this case, when Ubuntu boots into multi-user mode, it will know to also launch our Node-RED service. Muti-user mode is the default startup target.
 
@@ -356,6 +361,8 @@ Let's manually start the service now to test that it's still working.
 Point a browser back at the server's port 1880 and verify that Node-RED is back up. If it is, shut it back down until we secure the install in the next step.
 
     sudo systemctl stop node-red
+    
+[Reference for more information][15]
 
 **Restore a FLOW**
 
@@ -717,9 +724,6 @@ If your system is Windows 32bits
     
 I use as webadmin the "**mongobooster**"
 
-Node-red
-  https://www.digitalocean.com/community/tutorials/how-to-connect-your-internet-of-things-with-node-red-on-ubuntu-16-04
-
 Inicialização
   https://www.vivaolinux.com.br/dica/Colocando-script-na-inicializacao-do-Linux-(Ubuntu-Debian)
 
@@ -796,4 +800,5 @@ pxa255@gmail.com
 [12]:https://www.sublimetext.com/
 [13]:https://packagecontrol.io/installation
 [14]:https://github.com/nodesource/distributions#debinstall
+[15]:https://www.digitalocean.com/community/tutorials/how-to-connect-your-internet-of-things-with-node-red-on-ubuntu-16-04
 
