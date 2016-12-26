@@ -118,6 +118,8 @@ If you have nodejs already installed and want to update, then first remove curre
 
     sudo apt-get purge nodejs npm
     
+For future references see -> [ Debian / Ubuntu based distributions][14]
+    
 ## 3-Then install the Node package manager, NPM
 
     sudo apt-get install npm
@@ -271,6 +273,89 @@ And now launch Node-RED itself. No sudo is necessary, as port 1880 is high enoug
     node-red
 
 Some "Welcome to Node-RED" messages will print to the terminal. On your computer, point a web browser to port 1880 of the server.
+
+Launching Node-RED on Startup
+
+In order to start Node-RED automatically on startup, we'll need to install a node-red.service file instead of the more traditional init script. This is because Ubuntu 16.04 is the first LTS release that uses systemd for its init system. You can find a summary of this and other Ubuntu 16.04 changes in What's New in Ubuntu 16.04.
+
+Open a blank service file called node-red.service.
+
+    sudo nano /etc/systemd/system/node-red.service
+
+Copy and paste in the following, then save and close the file in **/etc/systemd/system/node-red.service**
+
+    [Unit]
+    Description=Node-RED
+    After=syslog.target network.target
+
+    [Service]
+    ExecStart=/usr/local/bin/node-red-pi --max-old-space-size=128 -v
+    Restart=on-failure
+    KillSignal=SIGINT
+
+    # log output to syslog as 'node-red'
+    SyslogIdentifier=node-red
+    StandardOutput=syslog
+
+    # non-root user to run as
+    WorkingDirectory=/home/sammy/
+    User=sammy
+    Group=sammy
+
+    [Install]
+    WantedBy=multi-user.target
+
+A full explanation of systemd service files is beyond this tutorial, but you can learn more by reading Systemd Essentials: Working with Services, Units, and the Journal.
+
+That said, let's break down some of the sections in our service file:
+/etc/systemd/system/node-red.service
+
+[Unit]
+Description=Node-RED
+After=syslog.target network.target
+
+This describes our service and indicates that it should be started after networking and syslog are functioning.
+/etc/systemd/system/node-red.service
+
+[Service]
+ExecStart=/usr/local/bin/node-red-pi --max-old-space-size=128 -v
+Restart=on-failure
+KillSignal=SIGINT
+
+ExecStart is the command needed to start our service. We call node-red-pi instead of plain node-red so we can pass some memory-saving options to Node.js. This should allow it to run well on any reasonably sized server, depending of course on how many flows you create in Node-RED (and how complicated they are). Restart=on-failure means systemd will try to restart Node-RED if it crashes, and KillSignal tells systemd the best way to quit Node-RED when it needs to shut down or restart the process.
+/etc/systemd/system/node-red.service
+
+# log output to syslog as 'node-red'
+SyslogIdentifier=node-red
+StandardOutput=syslog
+
+This sets the label used when logging, and logs all output to the syslog service.
+/etc/systemd/system/node-red.service
+
+# non-root user to run as
+WorkingDirectory=/home/sammy/
+User=sammy
+Group=sammy
+
+We want to run Node-RED as our non-root user. The lines above tell systemd to launch Node-RED using our user and group, and from within our home directory.
+/etc/systemd/system/node-red.service
+
+[Install]
+WantedBy=multi-user.target
+
+WantedBy indicates the targets our service should run under. In this case, when Ubuntu boots into multi-user mode, it will know to also launch our Node-RED service. Muti-user mode is the default startup target.
+
+Now that our service file is installed and understood, we need to enable it. This will enable it to execute on startup.
+
+    sudo systemctl enable node-red
+
+Let's manually start the service now to test that it's still working.
+
+    sudo systemctl start node-red
+
+Point a browser back at the server's port 1880 and verify that Node-RED is back up. If it is, shut it back down until we secure the install in the next step.
+
+    sudo systemctl stop node-red
 
 **Restore a FLOW**
 
@@ -710,4 +795,5 @@ pxa255@gmail.com
 [11]:http://www.7-zip.org/
 [12]:https://www.sublimetext.com/
 [13]:https://packagecontrol.io/installation
+[14]:https://github.com/nodesource/distributions#debinstall
 
