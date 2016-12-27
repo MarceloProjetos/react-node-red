@@ -232,7 +232,42 @@ This will cause all previous topics & queues, and their pending messages to be d
 In my case...
 
     <broker xmlns="http://activemq.apache.org/schema/core" brokerName="localhost" dataDirectory="${activemq.data}"  deleteAllMessagesOnStartup="true">
+    
+**LINUX**
 
+Open a blank service file called activemq.service.
+
+    sudo nano /etc/systemd/system/activemq.service
+
+Copy and paste in the following, then save and close the file in **/etc/systemd/system/activemq.service**
+
+I managed to get the following working - in /etc/systemd/system/activemq.myinstance.service
+
+#####
+
+[Unit]
+Description = ActiveMQ
+After = syslog.target network.target
+
+[Service]
+User=activemq
+PIDFile=/usr/local/activemq/myinstance/data/activemq.pid
+ExecStart=/usr/local/activemq/myinstance/bin/myinstance start
+ExecStop=/usr/local/activemq/myinstance/bin/myinstance stop
+ExecReload=/usr/local/activemq/myinstance/bin/myinstance restart
+Type = forking
+
+[Install]
+WantedBy = multi-user.target 
+
+Now that our service file is installed and understood, we need to enable it. This will enable it to execute on startup.
+
+    sudo systemctl enable activemq.myinstance.service
+
+Let's manually start the service now to test that it's still working.
+
+    sudo systemctl start activemq.myinstance.service
+    
 ----
 
 ## 6-Node-red
@@ -289,7 +324,7 @@ Copy and paste in the following, then save and close the file in **/etc/systemd/
     After=syslog.target network.target
 
     [Service]
-    ExecStart=/usr/local/bin/node-red-pi --max-old-space-size=128 -v
+    ExecStart=/usr/local/bin/node-red -v
     Restart=on-failure
     KillSignal=SIGINT
 
@@ -298,9 +333,9 @@ Copy and paste in the following, then save and close the file in **/etc/systemd/
     StandardOutput=syslog
 
     # non-root user to run as
-    WorkingDirectory=/home/sammy/
-    User=sammy
-    Group=sammy
+    WorkingDirectory=/home/marcelomiranda/
+    User=marcelomiranda
+    Group=marcelomiranda
 
     [Install]
     WantedBy=multi-user.target
@@ -337,9 +372,9 @@ This sets the label used when logging, and logs all output to the syslog service
     /etc/systemd/system/node-red.service
 
     # non-root user to run as
-    WorkingDirectory=/home/sammy/
-    User=sammy
-    Group=sammy
+    WorkingDirectory=/home/marcelomiranda/
+    User=marcelomiranda
+    Group=marcelomiranda
 
 We want to run Node-RED as our non-root user. The lines above tell systemd to launch Node-RED using our user and group, and from within our home directory.
 
@@ -650,7 +685,7 @@ When you come back to:
 
 ![alt tag](https://github.com/MarceloProjetos/react-bootstrap-exemplo/blob/master/images/node-red_login.png)
 
-Put username: "admin" and password: 
+Put username: "admin" and password ... 
 
 ## 6-Installation MongoDB
 
