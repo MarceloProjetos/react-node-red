@@ -22,11 +22,11 @@ import MovimentoInclusao  from './containers/Lancamentos/lancamentoInclusaoForm'
 import MovimentoSocios    from './containers/Lancamentos/lancamentoSociosForm';
 import AtualizaMovimentos from './containers/Lancamentos/lancamentoAtualizaForm';
 //Menu Consultas
-import PrevisaoDiaria     from './containers/consultaPrevisaoDiariaForm';
-import PrevisaoMensal     from './containers/consultaPrevisaoMensalForm';
-import CalculoPrevisao    from './containers/consultaCalculoForm';
-import PosicaoBancaria    from './containers/consultaPosicaoBancariaForm';
-import PosicaoPeriodo     from './containers/consultaPosicaoPeriodoForm';
+import PrevisaoDiaria     from './containers/Consultas/consultaPrevisaoDiariaForm';
+import PrevisaoMensal     from './containers/Consultas/consultaPrevisaoMensalForm';
+import CalculoPrevisao    from './containers/Consultas/consultaCalculoForm';
+import PosicaoBancaria    from './containers/Consultas/consultaPosicaoBancariaForm';
+import PosicaoPeriodo     from './containers/Consultas/consultaPosicaoPeriodoForm';
 
 export default class App extends Component {
   constructor(props) {
@@ -198,6 +198,7 @@ export default class App extends Component {
                 clientId={this.state.clientId} 
                 nome="Cadastro de Contas"
                 onClose={this.handleClose.bind(this)} 
+                config={this.state.config}
               >
                   <span>Algo deu errado para achar o form PosicaoPeriodo</span>
                    

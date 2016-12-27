@@ -3,7 +3,8 @@ import React, { Component } from 'react';
 
 import { 
   OverlayTrigger, 
-  Button, 
+  Button,
+  Alert, 
   Glyphicon, 
   Panel, 
   Col, 
@@ -11,52 +12,48 @@ import {
   Grid,
   FormGroup,
   FormControl,
-  Table,
   Checkbox,
   Tooltip,
 } from 'react-bootstrap';
 import DatePicker from 'react-bootstrap-date-picker';
+import {BootstrapTable, TableHeaderColumn} from 'react-bootstrap-table';
+
+import MovimentoInclusao       from '../Lancamentos/lancamentoInclusaoForm';
+import EditarLancamentoForm    from '../../containers/Lancamentos/editarLancamentoForm';
+import ExcluirLancamentoForm   from '../../containers/Lancamentos/excluirLancamentoForm';
 
 import uuid from 'node-uuid';
 import { assign, omit } from 'lodash';
 import mqtt from 'mqtt/lib/connect';
+
+const lancamentosId = 'mqtt_' + (1 + Math.random() * 4294967295).toString(16);
 
 export default class LancamentoForm extends Component {
   constructor(props) {
     super(props);
 
     this.state = { 
-      _id: null,
-      numero: '216558',
-      pedido: '74655',
-      emissao: new Date().toISOString(),
-      entrega: new Date().toISOString(),
-      cnpj: '63.394.915/0001-62',
-      representante: '001',
-      nome: 'ALEGRIA NA VIDA AGROINDUSTRIAL LTDA',
-      parcelas: [
-        {
-          selecionada: false,
-          vencto: new Date('2016-10-10').toISOString(),
-          valor: 2198.74
-        },
-        {
-          selecionada: false,
-          vencto: new Date('2016-11-07').toISOString(),
-          valor: 3572.96
-        }        
-      ],
+      _id: null, 
+      conta: [],
+      data: new Date().toISOString(),
+      cheque: "",
+      liquidado: false,
+      operacao: "credito",
+      valor: 1,
+      observacao: "",
+      debito: 0,
+      credito: 1,
       topics: {}
-    }
+    };
 
     this.handleClick = this.handleClick.bind(this);
     this.handleChange = this.handleChange.bind(this);
 
     this.handleInsert = this.handleInsert.bind(this);
     this.handleSave = this.handleSave.bind(this);
-    this.handleDelete = this.handleDelete.bind(this);
-    this.handlePrint = this.handlePrint.bind(this);
-    this.handleCalc = this.handleCalc.bind(this);
+    //this.handleDelete = this.handleDelete.bind(this);
+    //this.handlePrint = this.handlePrint.bind(this);
+    //this.handleCalc = this.handleCalc.bind(this);
     this.handleSearch = this.handleSearch.bind(this);
 
     this.handleError = this.handleError.bind(this);
@@ -64,58 +61,74 @@ export default class LancamentoForm extends Component {
 
   }
 
+  carregaLista() {
+    // enviar dados para fila
+    this.client.publish('financeiro/cadastro/contas/carregar/',JSON.stringify('Carregar lista '));
+  }
+
   componentWillMount() {
-    const opts = {
-      host: 'localhost', //'192.168.0.1', //'test.mosquitto.org'
-      port: 61614,
-      protocol: 'ws',
+    console.log('Config: ' + JSON.stringify(this.props.config,null,2));
+
+    let opts = {
+      host: this.props.config.host, //'192.168.0.174', //'test.mosquitto.org'
+      port: this.props.config.port,
+      protocol: this.props.config.protocol,
       qos: 0,
       retain: false,
       clean: true,
       keepAlive: 30, // 30 sec.
-      clientId: this.props.clientId
+      clientId: lancamentosId
     }
 
     this.client = mqtt.connect(opts);
 
     this.client.on('connect', function() {
-      //let topics = {};
 
       this.client.subscribe(
-        'financeiro/consulta/erros/' + opts.clientId, 
-        function(err, granted) { 
+        ['financeiro/lancamento/contas/erros/'   + lancamentosId, 
+        'financeiro/lancamento/contas/carregado/',
+        //'financeiro/cadastro/contas/incluido/', 
+        //'financeiro/cadastro/contas/alterado/', 
+        'financeiro/lancamento/contas/excluido/'], 
+         function(err, granted) { 
           !err ? 
-            this.setState({
-              topics: assign(this.state.topics, {[granted[0].topic]: this.handleError})}) : 
-            console.log('Erro ao se inscrever no topico: ' + err)
+            this.setState(
+              {
+                topics: assign(
+                          this.state.topics, 
+                          {
+                            [granted[0].topic]: this.handleError,   
+                            [granted[1].topic]: this.handleCarregar,  
+                           //[granted[2].topic]: this.handleIncluido, 
+                           // [granted[2].topic]: this.handleAlterado, 
+                            [granted[2].topic]: this.handleExcluido 
+                          }
+                        )
+              },
+              this.carregaLista
+            ) 
+          : 
+            alert('Erro ao se inscrever no topico: ' + err);
         }.bind(this)
-      );
-
-      //this.client.subscribe('financeiro/consulta/inserir', function(err, granted) { !err ? topics.push(granted) : console.log('Erro ao se inscrever no topico: ' + err)});
-      //this.client.subscribe('financeiro/consulta/gravar', function(err, granted) { !err ? topics.push(granted) : console.log('Erro ao se inscrever no topico: ' + err)});
-      //this.client.subscribe('financeiro/consulta/excluir', function(err, granted) { !err ? topics.push(granted) : console.log('Erro ao se inscrever no topico: ' + err)});
-      //this.client.subscribe('financeiro/consulta/imprimir', function(err, granted) { !err ? topics.push(granted) : console.log('Erro ao se inscrever no topico: ' + err)});
-      //this.client.subscribe('financeiro/consulta/listar', function(err, granted) { !err ? topics.push(granted) : console.log('Erro ao se inscrever no topico: ' + err)});
-      //this.client.subscribe('financeiro/consulta/buscar', function(err, granted) { !err ? topics.push(granted) : console.log('Erro ao se inscrever no topico: ' + err)});
-      //this.client.subscribe('financeiro/consulta/calcular', function(err, granted) { !err ? topics.push(granted) : console.log('Erro ao se inscrever no topico: ' + err)});
-
+      );  
     }.bind(this));
     
     this.client.on('message', function (topic, message) {
       // message is Buffer
       console.log(message.toString())
       
-      this.state.topics[topic] && this.state.topics[topic](message.toString());
+      // this.state.topics[topic] && this.handleError(message.toString());
+      this.state.topics[topic] && this.state.topics[topic](message.toString()); 
 
     }.bind(this))
-
+    console.log('ClientID cadastro = ' + lancamentosId );
   }
 
   componentWillUnmount() {
-    this.state.topics && Object.keys(this.state.topics).forEach( (key) =>
-      this.client.unsubscribe(this.state.topics[key].topic, function(err) 
+    this.state.topics && Object.keys(this.state.topics).forEach( (topic) =>
+      this.client.unsubscribe(topic, function(err) 
         { 
-          err && console.log('Erro ao retirar a inscrição ao topico: ' + this.state.topics[key].topic)
+          err && console.log('Erro ao retirar a inscrição ao topico: ' + topic)
         }
       )
     )
@@ -126,14 +139,72 @@ export default class LancamentoForm extends Component {
     alert('Erro: ' + msg);
   }
 
-  handleClick() {
-    this.setState({isLoading: true});
-
-    // This probably where you would have an `ajax` call
-    setTimeout(() => {
-      // Completed of async action, set loading state back
-      this.setState({isLoading: false});
-    }, 2000);
+  handleClick(e) {
+    switch(e) {
+      case 'Nova':
+        //console.log('LancamentosIdID nova conta = ' + lancamentosId );
+        this.setState(
+          {
+            form: 
+              <MovimentoInclusao
+                clientId={this.state.lancamentosId}
+                nome="Inclusão de Movimento"
+                onClose={this.handleClose.bind(this)}
+                config={this.state.config} 
+              >
+                  <span>Algo deu errado para achar o form MovimentoInclusao</span>
+                   
+              </MovimentoInclusao> 
+          }
+        )
+        break;
+      case 'Editar':
+        this.setState(
+          {
+            form: 
+              <EditarLancamentoForm 
+                clientId={lancamentosId}
+                title="Editar Conta cadastrada"
+                onClose={this.handleClose.bind(this)} 
+                record={this.state.conta}
+                config={this.props.config} 
+              >
+                  <span>Algo deu errado para achar o form EditarContas</span>
+              </EditarLancamentoForm> 
+          }
+        )
+        break;
+      case 'Delete':
+        this.setState(
+          {
+            form: 
+              <ExcluirLancamentoForm 
+                clientId={lancamentosId}
+                title="Deletar esta Conta ?"
+                onClose={this.handleClose.bind(this)} 
+                record={this.state.conta} 
+                config={this.props.config} 
+              >
+                  <span>Algo deu errado para achar o form ExcluirContas</span>
+              </ExcluirLancamentoForm> 
+          }
+        )
+        break;
+      default:
+        this.handleClose(this); 
+        this.setState({
+          form: 
+          <div>
+            <Alert bsStyle="danger" style={{margin: 200}} >
+            <h4>Impossivel mas entramos no "default" do case principal!</h4>
+              <p>Alguma coisa muito errada aconteceu, avise o responsavel.</p>
+              <p>
+                <Button onClick={this.handleClose}>Ok</Button>
+              </p>
+            </Alert>
+          </div>
+        });
+    }
   }
 
   handleInsert() {
@@ -160,7 +231,7 @@ export default class LancamentoForm extends Component {
           {topics: assign(this.state.topics, {[granted[0].topic]: this.handleSaveOk})},
           this.client.publish.bind(
             this.client, 
-            'financeiro/consulta/alterar/' + this.props.clientId, 
+            'financeiro/consulta/alterar/' + this.props.lancamentosId, 
             JSON.stringify(omit(this.state, 'topics'))
           )  
         );
@@ -171,18 +242,6 @@ export default class LancamentoForm extends Component {
 
   handleSaveOk(msg) {
     alert('Salvo com sucesso: ' + msg);
-  }
-
-  handleDelete(id) {
-
-  }
-
-  handlePrint(data) {
-
-  }
-
-  handleCalc(data) {
-
   }
 
   handleSearch(data) {
@@ -196,8 +255,20 @@ export default class LancamentoForm extends Component {
     });
   }
 
+  onRowSelect(row, isSelected){
+    console.log(row);
+    console.log("selected: " + isSelected)
+    this.setState({isSelected: isSelected, conta: row})
+  }
+
   render() {
-    //const canSave = true;
+
+    const selectRowProp = {
+      mode: "radio",  //checkbox for multi select, radio for single select.
+      clickToSelect: true,   //click row will trigger a selection on that row.
+      bgColor: "rgb(255, 200, 20)",   //selected row background color
+      onSelect: this.onRowSelect,
+    };
 
     return (
       <Grid>
@@ -206,17 +277,14 @@ export default class LancamentoForm extends Component {
           <Col md={1} />
           <Col md={10} >
 
-            <h4>ClientId: {this.props.clientId}</h4>
-
             <Panel header={'Posição por periodo'} bsStyle="primary" >
-
 
                 <Row style={{borderBottom: 'solid', borderBottomWidth: 1, borderBottomColor: '#337ab7', paddingBottom: 20}}>
                   <Col xs={6} md={2} >
 
                     <OverlayTrigger 
                       placement="top" 
-                      overlay={(<Tooltip id="tooltip">Cadastrar uma Conta Corrente</Tooltip>)}
+                      overlay={(<Tooltip id="tooltip">Novo Lançamento</Tooltip>)}
                     >
                         <Button
                           bsSize="large"
@@ -249,42 +317,18 @@ export default class LancamentoForm extends Component {
 
                   </Col>
                   <Col xs={6} md={2} >
-
-                    <OverlayTrigger 
-                      placement="top" 
-                      overlay={(<Tooltip id="tooltip">Imprimir</Tooltip>)}
-                    >
-
-                        <Button
-                          bsSize="large"
-                          disabled={!this.state.id}
-                          onClick={this.handlePrint}
-                          style={{width: 100}}
-                        >
-                          <Glyphicon glyph="print" />
-                          <div><span>Imprimir</span></div>
-                        </Button>
-
-                    </OverlayTrigger>
+                    <div>
+                      <span>      
+                      </span>
+                    </div>
 
                   </Col>
                   <Col xs={6} md={2} >
 
-                    <OverlayTrigger 
-                      placement="top" 
-                      overlay={(<Tooltip id="tooltip">Calcular Datas das Parcelas</Tooltip>)}
-                    >
-
-                        <Button
-                          bsSize="large"
-                          onClick={this.handleCalc}
-                          style={{width: 100}}
-                        >
-                          <Glyphicon glyph="calendar" />
-                          <div><span>Calcular</span></div>
-                        </Button>
-
-                    </OverlayTrigger>
+                    <div>
+                      <span>      
+                      </span>
+                    </div>
 
                   </Col>
                   <Col xs={6} md={2} >
@@ -315,7 +359,7 @@ export default class LancamentoForm extends Component {
                         <Button
                           bsSize="large"
                           disabled={!this.state.id}
-                          onClick={this.handleDelete}
+                          //onClick={this.handleDelete}
                           style={{width: 100}}
                         >
                           <Glyphicon glyph="trash" />
@@ -339,18 +383,12 @@ export default class LancamentoForm extends Component {
                   <Col xs={12} md={2}>Emissão</Col>
                   <Col xs={12} md={2}>
                     <FormGroup controlId="emissao" validationState="success">
-                      {/*<ControlLabel>Input with success and feedback icon</ControlLabel>*/}
-                      {/*<FormControl type="text" defaultValue="10/10/2016" />*/}
-                      {/*<FormControl.Feedback />*/}
-                      <DatePicker ref="emissao" value={this.state.emissao} onChange={this.handleChange} />
+                        <DatePicker ref="emissao" value={this.state.emissao} onChange={this.handleChange} />
                     </FormGroup>
                   </Col>
                   <Col xs={12} md={2}>Entrega</Col>
                   <Col xs={12} md={2}>
                     <FormGroup controlId="entrega" validationState="success">
-                      {/*<ControlLabel>Input with success and feedback icon</ControlLabel>*/}
-                      {/*<FormControl type="text" defaultValue="10/10/2016" />*/}
-                      {/*<FormControl.Feedback />*/}
                       <DatePicker ref="entrega" value={this.state.entrega} onChange={this.handleChange} />
                     </FormGroup>
                   </Col>
@@ -360,7 +398,6 @@ export default class LancamentoForm extends Component {
                   <Col xs={12} md={2}>Pedido</Col>
                   <Col xs={12} md={2}>
                     <FormGroup controlId="pedido" validationState="success">
-                      {/*<ControlLabel>Input with success and feedback icon</ControlLabel>*/}
                       <FormControl type="text" ref="pedido" value={this.state.pedido} onChange={this.handleChange} />
                       <FormControl.Feedback />
                     </FormGroup>
@@ -368,15 +405,13 @@ export default class LancamentoForm extends Component {
                   <Col xs={12} md={1}>CNPJ/CPF</Col>
                   <Col xs={12} md={3}>
                     <FormGroup controlId="cnpj" validationState="success">
-                      {/*<ControlLabel>Input with success and feedback icon</ControlLabel>*/}
-                      <FormControl type="text" ref="cnpj" value={this.state.cnpj} onChange={this.handleChange} />
+                     <FormControl type="text" ref="cnpj" value={this.state.cnpj} onChange={this.handleChange} />
                       <FormControl.Feedback />
                     </FormGroup>
                   </Col>
                   <Col xs={12} md={2}>Representante</Col>
                   <Col xs={12} md={2}>
                     <FormGroup controlId="representante" validationState="success">
-                      {/*<ControlLabel>Input with success and feedback icon</ControlLabel>*/}
                       <FormControl type="text" ref="representante" value={this.state.representante} onChange={this.handleChange} />
                       <FormControl.Feedback />
                     </FormGroup>
@@ -387,7 +422,6 @@ export default class LancamentoForm extends Component {
                   <Col xs={12} md={2}>Razão Social</Col>
                   <Col xs={12} md={10}>
                     <FormGroup controlId="nome" validationState="success">
-                      {/*<ControlLabel>Input with success and feedback icon</ControlLabel>*/}
                       <FormControl type="text" ref="nome" value={this.state.nome} onChange={this.handleChange} />
                       <FormControl.Feedback />
                     </FormGroup>
@@ -396,32 +430,26 @@ export default class LancamentoForm extends Component {
 
                 <Row>
                   <Col xs={12} md={12}>
-                    <Table striped bordered condensed hover>
-                      <thead>
-                        <tr>
-                          <th>#</th>
-                          <th>Data</th>
-                          <th>Valor da consulta</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {this.state.parcelas.map( (k, i) => 
-                          <tr key={'tr-' + i} >
-                            <td><Checkbox value={k.selecionada} /></td>
-                            <td>{k.vencto}</td>
-                            <td>{k.valor}</td>
-                          </tr>
-                        )}
- 
-                        <tr>
-                          <td></td>
-                          <td colSpan="2">Total das Parcelas: R$ 666,96</td>
-                        </tr>
-                      </tbody>
-                    </Table>
+             <div><span> <br/> </span></div>
+                        <BootstrapTable
+                          data={this.state.contas}
+                          remote={ true }
+                          striped={true}
+                          hover={true}
+                          condensed={true}
+                          pagination={false}
+                          selectRow={selectRowProp}
+                          search={true}>
+                          <TableHeaderColumn dataField="_id" isKey={true} dataAlign="center" hidden={true}>Product ID</TableHeaderColumn>
+                          <TableHeaderColumn dataField="data"                               dataSort={true}>DATA</TableHeaderColumn>
+                          <TableHeaderColumn dataField="observaca"        dataAlign="center">DESCRIÇÃO</TableHeaderColumn>
+                          <TableHeaderColumn dataField="cheque"           dataAlign="center">CHEQUE</TableHeaderColumn>
+                          <TableHeaderColumn dataField="liquidado"        dataAlign="center">LIQ</TableHeaderColumn>
+                          <TableHeaderColumn dataField="valor"            dataAlign="center">VALOR</TableHeaderColumn>
+                          <TableHeaderColumn dataField="saldo"            dataAlign="center">SALDO</TableHeaderColumn>
+                        </BootstrapTable>
                   </Col>
                 </Row>
-           
 
             </Panel>
 
@@ -429,6 +457,7 @@ export default class LancamentoForm extends Component {
           <Col md={1} />
 
         </Row>
+        {this.state.form}
       </Grid>  
     );
   }
