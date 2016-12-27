@@ -8,6 +8,6 @@ REM REACT-CREAT-APP
 start /D "c:\Desenvolvimento\git\React\react-node-red" cmd /k npm start
 
 REM FireFox i
-start /MIN /D "c:\Program Files (x86)\Mozilla Firefox\" cmd /k firefox.exe
+start /MIN /D "c:\Program Files (x86)\Mozilla Firefox\" cmd /k firefox.exe 
 
 
