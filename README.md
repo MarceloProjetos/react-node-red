@@ -243,22 +243,38 @@ Copy and paste in the following, then save and close the file in **/etc/systemd/
 
 I managed to get the following working - in /etc/systemd/system/activemq.myinstance.service
 
-#####
+    [Unit]
+    Description = ActiveMQ
+    After = syslog.target network.target
 
-[Unit]
-Description = ActiveMQ
-After = syslog.target network.target
+    [Service]
+    User=activemq
+    PIDFile=/usr/local/activemq/myinstance/data/activemq.pid
+    ExecStart=/usr/local/activemq/myinstance/bin/myinstance start
+    ExecStop=/usr/local/activemq/myinstance/bin/myinstance stop
+    ExecReload=/usr/local/activemq/myinstance/bin/myinstance restart
+    Type = forking
 
-[Service]
-User=activemq
-PIDFile=/usr/local/activemq/myinstance/data/activemq.pid
-ExecStart=/usr/local/activemq/myinstance/bin/myinstance start
-ExecStop=/usr/local/activemq/myinstance/bin/myinstance stop
-ExecReload=/usr/local/activemq/myinstance/bin/myinstance restart
-Type = forking
+    [Install]
+    WantedBy = multi-user.target 
 
-[Install]
-WantedBy = multi-user.target 
+or
+
+    [Unit]
+    Description=ActiveMQ async message broker
+    After=network.target
+
+    [Service]
+    PrivateTmp=true
+    PIDFile=/opt/activemq/data/activemq-your_server_name.pid
+    Type=simple
+    #Environment=JAVA_HOME=/usr/jvm/lib/latest
+    User=activemq
+    Group=activemq
+    ExecStart=/opt/activemq/bin/activemq console
+
+    [Install]
+    WantedBy=multi-user.target 
 
 Now that our service file is installed and understood, we need to enable it. This will enable it to execute on startup.
 
