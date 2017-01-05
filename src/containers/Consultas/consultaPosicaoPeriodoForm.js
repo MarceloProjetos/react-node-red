@@ -12,8 +12,7 @@ import {
   Grid,
   FormGroup,
   FormControl,
-  Checkbox,
-  Tooltip,
+  Tooltip
 } from 'react-bootstrap';
 import DatePicker from 'react-bootstrap-date-picker';
 import {BootstrapTable, TableHeaderColumn} from 'react-bootstrap-table';
@@ -27,6 +26,9 @@ import { assign, omit } from 'lodash';
 import mqtt from 'mqtt/lib/connect';
 
 const lancamentosId = 'mqtt_' + (1 + Math.random() * 4294967295).toString(16);
+const BrazilianDayLabels = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'];
+const BrazilianMonthLabels = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Octubro', 'Novembro', 'Dezembro'];
+
 
 export default class LancamentoForm extends Component {
   constructor(props) {
@@ -46,17 +48,14 @@ export default class LancamentoForm extends Component {
       topics: {}
     };
 
-    this.handleClick = this.handleClick.bind(this);
+    this.handleClick  = this.handleClick.bind(this);
     this.handleChange = this.handleChange.bind(this);
 
     this.handleInsert = this.handleInsert.bind(this);
-    this.handleSave = this.handleSave.bind(this);
-    //this.handleDelete = this.handleDelete.bind(this);
-    //this.handlePrint = this.handlePrint.bind(this);
-    //this.handleCalc = this.handleCalc.bind(this);
+    this.handleSave   = this.handleSave.bind(this);
     this.handleSearch = this.handleSearch.bind(this);
 
-    this.handleError = this.handleError.bind(this);
+    this.handleError  = this.handleError.bind(this);
     this.handleSaveOk = this.handleSaveOk.bind(this);
 
   }
@@ -86,9 +85,7 @@ export default class LancamentoForm extends Component {
 
       this.client.subscribe(
         ['financeiro/lancamento/contas/erros/'   + lancamentosId, 
-        'financeiro/lancamento/contas/carregado/',
-        //'financeiro/cadastro/contas/incluido/', 
-        //'financeiro/cadastro/contas/alterado/', 
+        'financeiro/lancamento/contas/carregado/', 
         'financeiro/lancamento/contas/excluido/'], 
          function(err, granted) { 
           !err ? 
@@ -383,13 +380,13 @@ export default class LancamentoForm extends Component {
                   <Col xs={12} md={2}>Emissão</Col>
                   <Col xs={12} md={2}>
                     <FormGroup controlId="emissao" validationState="success">
-                        <DatePicker ref="emissao" value={this.state.emissao} onChange={this.handleChange} />
+                        <DatePicker id="DATA" ref="emissao" dayLabels={BrazilianDayLabels} monthLabels={BrazilianMonthLabels} value={this.state.emissao} onChange={this.handleChange} />
                     </FormGroup>
                   </Col>
                   <Col xs={12} md={2}>Entrega</Col>
                   <Col xs={12} md={2}>
                     <FormGroup controlId="entrega" validationState="success">
-                      <DatePicker ref="entrega" value={this.state.entrega} onChange={this.handleChange} />
+                      <DatePicker id="DATA2" ref="entrega" dayLabels={BrazilianDayLabels} monthLabels={BrazilianMonthLabels} value={this.state.entrega} onChange={this.handleChange} />
                     </FormGroup>
                   </Col>
                 </Row>

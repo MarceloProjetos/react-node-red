@@ -28,10 +28,10 @@ export default class LancamentoForm extends Component {
   constructor(props) {
     super(props);
 
-    var d = new Date();
-    var datetime = d.getFullYear() + "-"
-                + (d.getMonth()+1)  + "-" 
-                + d.getDate()+"T"  
+    let d = new Date();
+    let datetime = d.getFullYear() + "-"
+                + ("0" + (d.getMonth()+1)).slice(-2) + "-" 
+                + ("0" + (d.getDate()+1)).slice(-2)  + "T"  
                 + d.getHours() + ":"  
                 + d.getMinutes() + ":00.000Z";
     console.log('data = ' + datetime);
