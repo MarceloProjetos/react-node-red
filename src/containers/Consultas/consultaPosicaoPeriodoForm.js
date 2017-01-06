@@ -425,7 +425,7 @@ export default class LancamentoForm extends Component {
                   </Col>
                 </Row>
 
-                <Row>
+                {/*<Row>
                   <Col xs={12} md={12}>
              <div><span> <br/> </span></div>
                         <BootstrapTable
@@ -446,7 +446,7 @@ export default class LancamentoForm extends Component {
                           <TableHeaderColumn dataField="saldo"            dataAlign="center">SALDO</TableHeaderColumn>
                         </BootstrapTable>
                   </Col>
-                </Row>
+                </Row>*/}
 
             </Panel>
 

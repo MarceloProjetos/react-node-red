@@ -31,7 +31,7 @@ export default class LancamentoForm extends Component {
     let d = new Date();
     let datetime = d.getFullYear() + "-"
                 + ("0" + (d.getMonth()+1)).slice(-2) + "-" 
-                + ("0" + (d.getDate()+1)).slice(-2)  + "T"  
+                + ("0" + (d.getDate())).slice(-2)  + "T"  
                 + d.getHours() + ":"  
                 + d.getMinutes() + ":00.000Z";
     console.log('data = ' + datetime);
@@ -221,10 +221,9 @@ export default class LancamentoForm extends Component {
         return 'error';
     }
   }
-
-
+//date regula EXPRESSION /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[012])\/(201[7-9]|202[0-9])$/;
   ChequeValidationState() {
-    var regex = /^\$?[0-9]+((\-[0-9][0-9])|(\-[0-9]))?$/;
+    var regex = /^\$?[0-9]+((\-[0-9][0-9])|(\-[0-9]))?$/; 
     const length = this.state.cheque.length;
     if ((length===0)){
         return 'warning';
