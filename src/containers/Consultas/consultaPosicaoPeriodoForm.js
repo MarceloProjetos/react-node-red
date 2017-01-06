@@ -4,15 +4,19 @@ import React, { Component } from 'react';
 import { 
   OverlayTrigger, 
   Button,
+  ButtonGroup,
   Alert, 
-  Glyphicon, 
+  Glyphicon,
+  DropdownButton,
+  ControlLabel, 
   Panel, 
   Col, 
   Row, 
   Grid,
   FormGroup,
   FormControl,
-  Tooltip
+  Tooltip,
+  MenuItem
 } from 'react-bootstrap';
 import DatePicker from 'react-bootstrap-date-picker';
 import {BootstrapTable, TableHeaderColumn} from 'react-bootstrap-table';
@@ -35,17 +39,22 @@ export default class LancamentoForm extends Component {
     super(props);
 
     this.state = { 
-      _id: null, 
-      conta: [],
-      data: new Date().toISOString(),
-      cheque: "",
-      liquidado: false,
-      operacao: "credito",
-      valor: 1,
+      _id:        null, 
+      conta:      0,// conta selecionada
+      data:       new Date().toISOString(),
+      cheque:     "",
+      liquidado:  false,
+      operacao:    "credito",
+      valor:      1,
       observacao: "",
-      debito: 0,
-      credito: 1,
-      topics: {}
+      debito:     0,
+      credito:    1,
+      contas:     [],  // lista de contas
+      topics:     {},
+
+      //campos de controle
+      conferir: false,
+      labelConferir: 'Á conferir',
     };
 
     this.handleClick  = this.handleClick.bind(this);
@@ -58,6 +67,7 @@ export default class LancamentoForm extends Component {
     this.handleError  = this.handleError.bind(this);
     this.handleSaveOk = this.handleSaveOk.bind(this);
 
+    this.handleConferir = this.handleConferir.bind(this);
   }
 
   carregaLista() {
@@ -245,6 +255,15 @@ export default class LancamentoForm extends Component {
 
   }
 
+  handleConferirData() {
+    console.log('A conferir Data');
+  }
+
+  handleConferir(conferir) {
+    console.log('A conferir: ' + conferir);
+    this.setState({conferir: conferir, labelConferir: conferir ? 'Todos' : 'Á conferir'})
+  }
+
   handleChange(value) {
     // value is an ISO String. 
     this.setState({
@@ -277,58 +296,38 @@ export default class LancamentoForm extends Component {
             <Panel header={'Posição por periodo'} bsStyle="primary" >
 
                 <Row style={{borderBottom: 'solid', borderBottomWidth: 1, borderBottomColor: '#337ab7', paddingBottom: 20}}>
-                  <Col xs={6} md={2} >
+                  <Col xs={6} md={3} >
 
-                    <OverlayTrigger 
-                      placement="top" 
-                      overlay={(<Tooltip id="tooltip">Novo Lançamento</Tooltip>)}
-                    >
-                        <Button
-                          bsSize="large"
-                          onClick={this.handleInsert}
-                          style={{width: 100}}
-                        >
-                          <Glyphicon glyph="plus" />
-                          <div><span>Novo</span></div>
-                        </Button>
-                    </OverlayTrigger>
+                      <FormGroup controlId="formControlsSelect">
+                        <ControlLabel>Seleciona a conta</ControlLabel>
+                        <FormControl componentClass="select" placeholder="Bancos + Contas" value={this.state.conta} onChange={this.handleContaChange} >
+                        {this.state.contas.map( (c) =>
+                          <option key={c._id} value={c._id}>{c.banco + ' ' + c.conta}</option>
+                        )}
+                        </FormControl>
+                      </FormGroup>
 
                   </Col>
-                  <Col xs={6} md={2} >
-
-                    <OverlayTrigger 
-                      placement="top" 
-                      overlay={(<Tooltip id="tooltip">Salvar as Alterações</Tooltip>)}
-                    >
-
-                        <Button
-                          bsSize="large"
-                          onClick={this.handleSave}
-                          style={{width: 100}}
-                        >
-                          <Glyphicon glyph="floppy-disk" />
-                          <div><span>Gravar</span></div>
-                        </Button>
-
-                    </OverlayTrigger>
-
+                  <Col xs={6} md={3} >
+                      <FormGroup controlId="dataConferir" validationState="success">
+                        <ControlLabel>{this.state.labelConferir}</ControlLabel>
+                        <FormControl.Static style={{paddingTop: 0}} >
+                        <DropdownButton title="Tipo de conferência" id="bg-nested-dropdown">
+                          <MenuItem eventKey="1" onClick={this.handleConferir.bind(null, false)}    >Á conferir</MenuItem>
+                          <MenuItem eventKey="2" onClick={this.handleConferir.bind(null, true)}>Todos</MenuItem>
+                        </DropdownButton>
+                        </FormControl.Static>
+                      </FormGroup>
                   </Col>
-                  <Col xs={6} md={2} >
-                    <div>
-                      <span>      
-                      </span>
-                    </div>
-
+                  <Col xs={6} md={3} >
+                      {this.state.conferir ?
+                        <FormGroup controlId="dataConferir" validationState="success">
+                          <ControlLabel>Data inicial</ControlLabel>
+                          <DatePicker id="dataConferir" ref="dataConferir" dayLabels={BrazilianDayLabels} monthLabels={BrazilianMonthLabels} value={this.state.emissao} onChange={this.handleConferirData} />
+                        </FormGroup>
+                      : null }
                   </Col>
-                  <Col xs={6} md={2} >
-
-                    <div>
-                      <span>      
-                      </span>
-                    </div>
-
-                  </Col>
-                  <Col xs={6} md={2} >
+                  <Col xs={6} md={3} >
 
                     <OverlayTrigger 
                       placement="top" 
@@ -338,32 +337,14 @@ export default class LancamentoForm extends Component {
                         <Button
                           bsSize="large"
                           onClick={this.handleSearch}
-                          style={{width: 100}}
+                          style={{width: 140}}
                         >
                           <Glyphicon glyph="search" />
-                          <div><span>Buscar</span></div>
+                          <div><span>Pesquisar</span></div>
                         </Button>
 
                     </OverlayTrigger>
 
-                  </Col>
-                  <Col xs={6} md={2} >
-
-                    <OverlayTrigger 
-                      placement="top" 
-                      overlay={(<Tooltip id="tooltip">Excluir esta Conta</Tooltip>)}
-                    >
-                        <Button
-                          bsSize="large"
-                          disabled={!this.state.id}
-                          //onClick={this.handleDelete}
-                          style={{width: 100}}
-                        >
-                          <Glyphicon glyph="trash" />
-                          <div><span>Excluir</span></div>
-                        </Button>
-
-                    </OverlayTrigger>
 
                   </Col>
                 </Row>
