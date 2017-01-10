@@ -37,17 +37,17 @@ export default class LancamentoForm extends Component {
     console.log('data = ' + datetime);
 
     this.state = { 
-      _id: null,
-      conta: 0, // conta selecionada
-      data: datetime,
-      cheque: '',
-      liquidado: false,
-      operacao:'',
-      valor: '',
+      _id:        null,
+      conta:      0, // conta selecionada
+      data:       datetime,
+      cheque:     '',
+      liquidado:  false,
+      operacao:   '',
+      valor:      '',
       observacao: '',
       // campos de controle, nao apagar, nao gravar
-      contas: [],  // lista de contas
-      topics: {}
+      contas:     [],  // lista de contas
+      topics:     {}
     }
 
     this.handleChangeData   = this.handleChangeData.bind(this);
@@ -65,6 +65,11 @@ export default class LancamentoForm extends Component {
     this.enviar             = this.enviar.bind(this);
     this.handleContaChange  = this.handleContaChange.bind(this);
     this.mostraContaSelecionada = this.mostraContaSelecionada.bind(this);
+  }
+
+  carregaListas() {
+    // enviar dados para fila
+    this.client.publish('financeiro/cadastro/contas/carregar/',JSON.stringify('Carregar lista '));
   }
 
   componentWillMount() {
@@ -169,7 +174,7 @@ export default class LancamentoForm extends Component {
   }
 
   handleSaveOk(msg) {
-   alert('Lancamento feito com sucesso#: ' + msg);
+   //alert('Lancamento feito com sucesso#: ' + msg);
    this.props.onClose && this.props.onClose();
   }
 
@@ -186,6 +191,7 @@ export default class LancamentoForm extends Component {
   mostraContaSelecionada() {
     console.log('Conta selecionada: ' + this.state.conta);
   }
+
   carregaLista() {
     // enviar dados para fila
     this.client.publish('financeiro/lancamento/contas/carregar/',JSON.stringify('Carregar contas '));

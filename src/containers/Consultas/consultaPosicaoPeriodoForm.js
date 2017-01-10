@@ -4,7 +4,6 @@ import React, { Component } from 'react';
 import { 
   OverlayTrigger, 
   Button,
-  ButtonGroup,
   Alert, 
   Glyphicon,
   DropdownButton,
@@ -16,20 +15,18 @@ import {
   FormGroup,
   FormControl,
   Tooltip,
-  MenuItem
+  MenuItem,
 } from 'react-bootstrap';
 import DatePicker from 'react-bootstrap-date-picker';
 import {BootstrapTable, TableHeaderColumn} from 'react-bootstrap-table';
 
-import MovimentoInclusao       from '../Lancamentos/lancamentoInclusaoForm';
 import EditarLancamentoForm    from '../../containers/Lancamentos/editarLancamentoForm';
 import ExcluirLancamentoForm   from '../../containers/Lancamentos/excluirLancamentoForm';
 
-import uuid from 'node-uuid';
 import { assign, omit } from 'lodash';
 import mqtt from 'mqtt/lib/connect';
 
-const lancamentosId = 'mqtt_' + (1 + Math.random() * 4294967295).toString(16);
+const lancamentosId = 'mqtt_lan' + (1 + Math.random() * 4294967295).toString(16);
 const BrazilianDayLabels = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'];
 const BrazilianMonthLabels = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Octubro', 'Novembro', 'Dezembro'];
 
@@ -38,13 +35,21 @@ export default class LancamentoForm extends Component {
   constructor(props) {
     super(props);
 
+    let d = new Date();
+    let datetime = d.getFullYear() + "-"
+                + ("0" + (d.getMonth()+1)).slice(-2) + "-" 
+                + ("0" + (d.getDate())).slice(-2)  + "T"  
+                + d.getHours() + ":"  
+                + d.getMinutes() + ":00.000Z";
+    console.log('data = ' + datetime);
+
     this.state = { 
       _id:        null, 
       conta:      0,// conta selecionada
       data:       new Date().toISOString(),
       cheque:     "",
       liquidado:  false,
-      operacao:    "credito",
+      operacao:   "credito",
       valor:      1,
       observacao: "",
       debito:     0,
@@ -57,26 +62,25 @@ export default class LancamentoForm extends Component {
       labelConferir: 'Á conferir',
     };
 
-    this.handleClick  = this.handleClick.bind(this);
-    this.handleChange = this.handleChange.bind(this);
+    this.handleClick    = this.handleClick.bind(this);
 
-    this.handleInsert = this.handleInsert.bind(this);
-    this.handleSave   = this.handleSave.bind(this);
-    this.handleSearch = this.handleSearch.bind(this);
+    this.handleSave     = this.handleSave.bind(this);
+    this.handleSearch   = this.handleSearch.bind(this);
 
-    this.handleError  = this.handleError.bind(this);
-    this.handleSaveOk = this.handleSaveOk.bind(this);
+    this.handleError    = this.handleError.bind(this);
+    this.handleIncluido = this.handleIncluido.bind(this);
+    this.handleSaveOk   = this.handleSaveOk.bind(this);
 
     this.handleConferir = this.handleConferir.bind(this);
   }
 
-  carregaLista() {
+  carregaListas() {
     // enviar dados para fila
-    this.client.publish('financeiro/cadastro/contas/carregar/',JSON.stringify('Carregar lista '));
+    this.client.publish('financeiro/consulta/posicao/periodo/',JSON.stringify('Carregar lista '));
   }
 
   componentWillMount() {
-    console.log('Config: ' + JSON.stringify(this.props.config,null,2));
+    console.log('Config : ' + JSON.stringify(this.props.config,null,2));
 
     let opts = {
       host: this.props.config.host, //'192.168.0.174', //'test.mosquitto.org'
@@ -96,7 +100,7 @@ export default class LancamentoForm extends Component {
       this.client.subscribe(
         ['financeiro/lancamento/contas/erros/'   + lancamentosId, 
         'financeiro/lancamento/contas/carregado/', 
-        'financeiro/lancamento/contas/excluido/'], 
+        'financeiro/lancamento/contas/incluido/' + lancamentosId], 
          function(err, granted) { 
           !err ? 
             this.setState(
@@ -105,10 +109,8 @@ export default class LancamentoForm extends Component {
                           this.state.topics, 
                           {
                             [granted[0].topic]: this.handleError,   
-                            [granted[1].topic]: this.handleCarregar,  
-                           //[granted[2].topic]: this.handleIncluido, 
-                           // [granted[2].topic]: this.handleAlterado, 
-                            [granted[2].topic]: this.handleExcluido 
+                            [granted[1].topic]: this.handleIncluido,  
+                            [granted[2].topic]: this.handleSaveOk 
                           }
                         )
               },
@@ -128,7 +130,7 @@ export default class LancamentoForm extends Component {
       this.state.topics[topic] && this.state.topics[topic](message.toString()); 
 
     }.bind(this))
-    console.log('ClientID cadastro = ' + lancamentosId );
+    console.log('Lancamento = ' + lancamentosId );
   }
 
   componentWillUnmount() {
@@ -146,25 +148,93 @@ export default class LancamentoForm extends Component {
     alert('Erro: ' + msg);
   }
 
+  enviar(msg){
+    //console.log('lancamentoID: ' + clientId + '\nEnviado: \n' + JSON.stringify(omit(this.state, ['topics','contas']), null, 2));
+    // enviar dados para fila
+    this.client.publish(
+            'financeiro/consulta/posicao/periodo/' + lancamentosId, 
+            JSON.stringify(omit(this.state, ['topics','contas']))
+          );
+  }
+
+  console_log(msg) {
+    console.log('Modou:' + this.state.liquidado)
+  }
+
+  handleCheckboxChange(value) {
+    //console.log('Antes: ' + this.state.liquidado)
+    this.setState({liquidado: !this.state.liquidado},this.console_log)
+    //console.log('Depois: ' + this.state.liquidado)
+  }
+
+  handleChangeData(data) {
+    //var hiddenInputElement = document.getElementById("DATA");
+    //console.log(hiddenInputElement.getAttribute('data-formattedvalue'));
+    var isodate = data;
+    console.log('datetime = ' + isodate);
+    this.setState({ 
+      data: isodate
+    })
+  }
+
+  handleSave(data) {
+    //alert(JSON.stringify(this.state, null, 2));
+    this.client.subscribe('financeiro/consulta/alterado/' + this.state._id, function(err, granted) {
+      if (err) {
+        console.log('Erro ao se inscrever no topico: ' + granted[0].topic)
+      } else {
+        this.setState(
+          {topics: assign(this.state.topics, {[granted[0].topic]: this.handleSaveOk})},
+          this.client.publish.bind(
+            this.client, 
+            'financeiro/consulta/alterar/' + this.props.lancamentosId, 
+            JSON.stringify(omit(this.state, 'topics'))
+          )  
+        );
+      }
+      
+    }.bind(this));    
+  }
+
+  handleSaveOk(msg) {
+   //alert('Lancamento feito com sucesso#: ' + msg);
+   this.props.onClose && this.props.onClose();
+  }
+
+  handleIncluido(msg) {
+    let contas = JSON.parse(msg);
+    this.setState({contas: contas, conta: Array.isArray(contas) && contas.length ? contas[0]._id : 0});
+    //alert('aqui: ' + msg);
+  }
+
+  handleContaChange(element) {
+    this.setState({conta: element.target.value}, this.mostraContaSelecionada);
+  }
+
+  mostraContaSelecionada() {
+    console.log('Conta selecionada: ' + this.state.conta);
+  }
+  carregaLista() {
+    // enviar dados para fila
+    this.client.publish('financeiro/lancamento/contas/carregar/',JSON.stringify('Carregar contas '));
+  }
+
+  handleConferirData() {
+    console.log('A conferir Data');
+  }
+
+  handleSearch() {
+    console.log('Procurar...');
+  }
+
+  handleConferir(conferir) {
+    console.log('A conferir: ' + conferir);
+    this.setState({conferir: conferir, labelConferir: conferir ? 'Todos' : 'Á conferir'})
+  }
+
+
   handleClick(e) {
     switch(e) {
-      case 'Nova':
-        //console.log('LancamentosIdID nova conta = ' + lancamentosId );
-        this.setState(
-          {
-            form: 
-              <MovimentoInclusao
-                clientId={this.state.lancamentosId}
-                nome="Inclusão de Movimento"
-                onClose={this.handleClose.bind(this)}
-                config={this.state.config} 
-              >
-                  <span>Algo deu errado para achar o form MovimentoInclusao</span>
-                   
-              </MovimentoInclusao> 
-          }
-        )
-        break;
       case 'Editar':
         this.setState(
           {
@@ -214,63 +284,6 @@ export default class LancamentoForm extends Component {
     }
   }
 
-  handleInsert() {
-    this.setState({
-      _id: uuid.v4(), 
-      numero: '',
-      pedido: '',
-      emissao: new Date().toISOString(),
-      entrega: new Date().toISOString(),
-      cnpj: '',
-      representante: '',
-      nome: '',
-      parcelas: []
-    });
-  }
-
-  handleSave(data) {
-    //alert(JSON.stringify(this.state, null, 2));
-    this.client.subscribe('financeiro/consulta/alterado/' + this.state._id, function(err, granted) {
-      if (err) {
-        console.log('Erro ao se inscrever no topico: ' + granted[0].topic)
-      } else {
-        this.setState(
-          {topics: assign(this.state.topics, {[granted[0].topic]: this.handleSaveOk})},
-          this.client.publish.bind(
-            this.client, 
-            'financeiro/consulta/alterar/' + this.props.lancamentosId, 
-            JSON.stringify(omit(this.state, 'topics'))
-          )  
-        );
-      }
-      
-    }.bind(this));    
-  }
-
-  handleSaveOk(msg) {
-    alert('Salvo com sucesso: ' + msg);
-  }
-
-  handleSearch(data) {
-
-  }
-
-  handleConferirData() {
-    console.log('A conferir Data');
-  }
-
-  handleConferir(conferir) {
-    console.log('A conferir: ' + conferir);
-    this.setState({conferir: conferir, labelConferir: conferir ? 'Todos' : 'Á conferir'})
-  }
-
-  handleChange(value) {
-    // value is an ISO String. 
-    this.setState({
-      [value.target.id]: value.target.value
-    });
-  }
-
   onRowSelect(row, isSelected){
     console.log(row);
     console.log("selected: " + isSelected)
@@ -313,8 +326,8 @@ export default class LancamentoForm extends Component {
                         <ControlLabel>{this.state.labelConferir}</ControlLabel>
                         <FormControl.Static style={{paddingTop: 0}} >
                         <DropdownButton title="Tipo de conferência" id="bg-nested-dropdown">
-                          <MenuItem eventKey="1" onClick={this.handleConferir.bind(null, false)}    >Á conferir</MenuItem>
-                          <MenuItem eventKey="2" onClick={this.handleConferir.bind(null, true)}>Todos</MenuItem>
+                          <MenuItem eventKey="1" onClick={this.handleConferir.bind(null, false)}  >Á conferir</MenuItem>
+                          <MenuItem eventKey="2" onClick={this.handleConferir.bind(null, true)}   >Todos</MenuItem>
                         </DropdownButton>
                         </FormControl.Static>
                       </FormGroup>
@@ -350,63 +363,40 @@ export default class LancamentoForm extends Component {
                 </Row>
 
                 <Row style={{paddingTop: 20}} >
-                  <Col xs={12} md={2}>Número</Col>
-                  <Col xs={12} md={2}>
-                    <FormGroup controlId="numero" validationState="success">
-                      {/*<ControlLabel>Input with success and feedback icon</ControlLabel>*/}
-                      <FormControl ref="numero" type="text" value={this.state.numero} onChange={this.handleChange} />
-                      <FormControl.Feedback />
-                    </FormGroup>
-                  </Col>
-                  <Col xs={12} md={2}>Emissão</Col>
-                  <Col xs={12} md={2}>
-                    <FormGroup controlId="emissao" validationState="success">
-                        <DatePicker id="DATA" ref="emissao" dayLabels={BrazilianDayLabels} monthLabels={BrazilianMonthLabels} value={this.state.emissao} onChange={this.handleChange} />
-                    </FormGroup>
-                  </Col>
-                  <Col xs={12} md={2}>Entrega</Col>
-                  <Col xs={12} md={2}>
-                    <FormGroup controlId="entrega" validationState="success">
-                      <DatePicker id="DATA2" ref="entrega" dayLabels={BrazilianDayLabels} monthLabels={BrazilianMonthLabels} value={this.state.entrega} onChange={this.handleChange} />
-                    </FormGroup>
-                  </Col>
-                </Row>
-
-                <Row>
-                  <Col xs={12} md={2}>Pedido</Col>
-                  <Col xs={12} md={2}>
-                    <FormGroup controlId="pedido" validationState="success">
-                      <FormControl type="text" ref="pedido" value={this.state.pedido} onChange={this.handleChange} />
-                      <FormControl.Feedback />
-                    </FormGroup>
-                  </Col>
-                  <Col xs={12} md={1}>CNPJ/CPF</Col>
+                  <Col xs={12} md={1}>CHEQUE</Col>
                   <Col xs={12} md={3}>
-                    <FormGroup controlId="cnpj" validationState="success">
-                     <FormControl type="text" ref="cnpj" value={this.state.cnpj} onChange={this.handleChange} />
+                    <FormGroup controlId="CHEQUE" validationState="success">
+                     <FormControl type="text" ref="CHEQUE" value={this.state.cheque} onChange={this.handleChange} />
                       <FormControl.Feedback />
                     </FormGroup>
                   </Col>
-                  <Col xs={12} md={2}>Representante</Col>
-                  <Col xs={12} md={2}>
-                    <FormGroup controlId="representante" validationState="success">
-                      <FormControl type="text" ref="representante" value={this.state.representante} onChange={this.handleChange} />
+                  <Col xs={12} md={1}>VALOR</Col>
+                  <Col xs={12} md={3}>
+                    <FormGroup controlId="VALOR" validationState="success">
+                     <FormControl type="text" ref="VALOR" value={this.state.valor} onChange={this.handleChange} />
+                      <FormControl.Feedback />
+                    </FormGroup>
+                  </Col>
+                  <Col xs={12} md={1}>SALDO</Col>
+                  <Col xs={12} md={3}>
+                    <FormGroup controlId="SALDO" validationState="success">
+                      <FormControl type="text" ref="SALDO" value={this.state.saldo} onChange={this.handleChange} />
                       <FormControl.Feedback />
                     </FormGroup>
                   </Col>
                 </Row>
 
                 <Row>
-                  <Col xs={12} md={2}>Razão Social</Col>
+                  <Col xs={12} md={2}>DESCRIÇÃO</Col>
                   <Col xs={12} md={10}>
-                    <FormGroup controlId="nome" validationState="success">
-                      <FormControl type="text" ref="nome" value={this.state.nome} onChange={this.handleChange} />
+                    <FormGroup controlId="DESCRICAO" validationState="success">
+                      <FormControl type="text" ref="DESCRICAO" value={this.state.observacao} onChange={this.handleChange} />
                       <FormControl.Feedback />
                     </FormGroup>
                   </Col>
                 </Row>
 
-                {/*<Row>
+                {<Row>
                   <Col xs={12} md={12}>
              <div><span> <br/> </span></div>
                         <BootstrapTable
@@ -417,7 +407,7 @@ export default class LancamentoForm extends Component {
                           condensed={true}
                           pagination={false}
                           selectRow={selectRowProp}
-                          search={true}>
+                          search={false}>
                           <TableHeaderColumn dataField="_id" isKey={true} dataAlign="center" hidden={true}>Product ID</TableHeaderColumn>
                           <TableHeaderColumn dataField="data"                               dataSort={true}>DATA</TableHeaderColumn>
                           <TableHeaderColumn dataField="observaca"        dataAlign="center">DESCRIÇÃO</TableHeaderColumn>
@@ -427,8 +417,7 @@ export default class LancamentoForm extends Component {
                           <TableHeaderColumn dataField="saldo"            dataAlign="center">SALDO</TableHeaderColumn>
                         </BootstrapTable>
                   </Col>
-                </Row>*/}
-
+                </Row>}
             </Panel>
 
           </Col>
