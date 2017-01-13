@@ -64,7 +64,6 @@ export default class LancamentoForm extends Component {
     this.console_log        = this.console_log.bind(this);
     this.enviar             = this.enviar.bind(this);
     this.handleContaChange  = this.handleContaChange.bind(this);
-    this.mostraContaSelecionada = this.mostraContaSelecionada.bind(this);
   }
 
   carregaListas() {
@@ -180,21 +179,26 @@ export default class LancamentoForm extends Component {
 
   handleIncluido(msg) {
     let contas = JSON.parse(msg);
-    this.setState({contas: contas, conta: Array.isArray(contas) && contas.length ? contas[0]._id : 0});
+    if (this.state.conta) {
+      this.setState({contas: contas});  
+    } else {
+      Array.isArray(contas) && 
+      contas.length && 
+      this.setState({contas: contas, conta: contas[0]._id});
+    }
+    
     //alert('aqui: ' + msg);
   }
 
   handleContaChange(element) {
-    this.setState({conta: element.target.value}, this.mostraContaSelecionada);
-  }
-
-  mostraContaSelecionada() {
-    console.log('Conta selecionada: ' + this.state.conta);
+    this.setState({conta: element.target.value}, this.carregaLista);
+    //this.client.publish('financeiro/cadastro/contas/carregar/',JSON.stringify('Calcular ' + this.state.conta));
   }
 
   carregaLista() {
     // enviar dados para fila
-    this.client.publish('financeiro/lancamento/contas/carregar/',JSON.stringify('Carregar contas '));
+    this.client.publish('financeiro/lancamento/contas/carregar/',JSON.stringify(this.state.conta));
+    console.log('Conta selecionada: ' + this.state.conta);
   }
 
   handleChangeValor(event) {
@@ -292,7 +296,7 @@ export default class LancamentoForm extends Component {
                   <Col md={6} >
                       <FormGroup>
                           <ControlLabel>Saldo Atual</ControlLabel>
-                          <FormControl disabled type="text" placeholder="R$124.888,77" />
+                          <FormControl disabled type="text" value={this.state.conta} />
                       </FormGroup>
                   </Col>
                 </Row>

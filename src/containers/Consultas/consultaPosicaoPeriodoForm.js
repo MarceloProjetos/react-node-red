@@ -15,7 +15,7 @@ import {
   FormGroup,
   FormControl,
   Tooltip,
-  MenuItem,
+  MenuItem
 } from 'react-bootstrap';
 import DatePicker from 'react-bootstrap-date-picker';
 import {BootstrapTable, TableHeaderColumn} from 'react-bootstrap-table';
