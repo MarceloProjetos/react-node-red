@@ -1,4 +1,3 @@
-
 import React, { Component } from 'react';
 
 import { 
@@ -13,16 +12,16 @@ import {
   ControlLabel,
   Checkbox,
 } from 'react-bootstrap';
+
 import DatePicker from 'react-bootstrap-date-picker';
 
-//import uuid from 'node-uuid';
-import { assign, omit } from 'lodash';
+import uuid from 'node-uuid';
+import { assign } from 'lodash';
 import mqtt from 'mqtt/lib/connect';
 
 const clientId = 'lancamento_' + (1 + Math.random() * 4294967295).toString(16);
 const BrazilianDayLabels = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'];
 const BrazilianMonthLabels = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Octubro', 'Novembro', 'Dezembro'];
-
 
 export default class LancamentoForm extends Component {
   constructor(props) {
@@ -38,15 +37,17 @@ export default class LancamentoForm extends Component {
 
     this.state = { 
       _id:        null,
-      conta:      0, // conta selecionada
+      conta:      null, // conta selecionada
       data:       datetime,
       cheque:     '',
       liquidado:  false,
       operacao:   '',
       valor:      '',
       observacao: '',
+
       // campos de controle, nao apagar, nao gravar
       contas:     [],  // lista de contas
+
       topics:     {}
     }
 
@@ -56,19 +57,10 @@ export default class LancamentoForm extends Component {
     this.handleChangeValor  = this.handleChangeValor.bind(this);
     this.handleChangeObs    = this.handleChangeObs.bind(this);
 
-    this.handleError        = this.handleError.bind(this);
-    this.handleIncluido     = this.handleIncluido.bind(this);
     this.handleIncluir      = this.handleIncluir.bind(this);
-    this.handleSaveOk       = this.handleSaveOk.bind(this);
 
     this.console_log        = this.console_log.bind(this);
-    this.enviar             = this.enviar.bind(this);
     this.handleContaChange  = this.handleContaChange.bind(this);
-  }
-
-  carregaListas() {
-    // enviar dados para fila
-    this.client.publish('financeiro/cadastro/contas/carregar/',JSON.stringify('Carregar lista '));
   }
 
   componentWillMount() {
@@ -90,28 +82,35 @@ export default class LancamentoForm extends Component {
     this.client.on('connect', function() {
 
       this.client.subscribe(
-        ['financeiro/lancamento/contas/erros/'   + clientId, 
-        'financeiro/lancamento/contas/carregado/',
-        'financeiro/lancamento/contas/incluido/' + clientId], 
-         function(err, granted) { 
+        [
+          'financeiro/cadastro/contas/carregado/',
+          'financeiro/lancamento/contas/erros/' + clientId, 
+          'financeiro/lancamento/contas/incluido/' + clientId,
+          'financeiro/lancamento/contas/carregado/',
+          'financeiro/lancamento/contas/saldo/carregado/',
+        ], 
+        function(err, granted) { 
           !err ? 
             this.setState(
               {
                 topics: assign(
-                          this.state.topics, 
-                          {
-                            [granted[0].topic]: this.handleError,   
-                            [granted[1].topic]: this.handleIncluido,
-                            [granted[2].topic]: this.handleSaveOk
-                          }
-                        )
+                  this.state.topics, 
+                  {
+                    [granted[0].topic]: this.topicCadastroContasCarregado.bind(this),
+                    [granted[1].topic]: this.topicLancamentoContasErro.bind(this),   
+                    [granted[2].topic]: this.topicLancamentoContasIncluido.bind(this),
+                    [granted[3].topic]: this.topicLancamentoContasCarregado.bind(this),
+                    [granted[4].topic]: this.topicLancamentoContasSaldoCarregado.bind(this)
+                  }
+                )
               },
-              this.carregaLista
+              this.client.publish.bind(this.client, 'financeiro/cadastro/contas/carregar/')
             ) 
           : 
             alert('Erro ao se inscrever no topico:' + err);
         }.bind(this)
-      );  
+      );
+
     }.bind(this));
     
     this.client.on('message', function (topic, message) {
@@ -135,21 +134,135 @@ export default class LancamentoForm extends Component {
     this.client.end();
   }
 
-  handleError(msg) {
+  topicCadastroContasCarregado(msg) {
+    let contas = JSON.parse(msg);
+    let conta = Array.isArray(contas) && contas.length ? contas[0] : {
+      "_id": "",
+      "selecionada": false,
+      "banco": "",
+      "conta": "",
+      "agencia": "",
+      "descricao": "",
+    };
+
+    this.setState(
+      {
+        conta: conta,
+        contas: contas
+      }, 
+      conta && this.client.publish.bind(this.client, 'financeiro/lancamento/contas/saldo/carregar/', )
+    );  
+  }
+
+  topicLancamentoContasSaldoCarregado(msg) {
+    let saldos = JSON.parse(msg);
+
+    this.setState(
+      {
+        conta: {
+          ...this.state.conta,
+          saldo: saldos.find( saldo => saldo._id === this.state.conta._id) || 
+          {
+            "_id": this.state.conta._id,
+            "debito": 0,
+            "credito": 0,
+            "valor": 0,
+            "count": 0
+          }
+        },
+
+        contas: this.state.contas.map( conta => {
+          return({
+            ...conta,
+            saldo: saldos.find( saldo => saldo._id === conta._id) ||
+            {
+              "_id": conta._id,
+              "debito": 0,
+              "credito": 0,
+              "valor": 0,
+              "count": 0
+            }
+          })
+        }),
+
+      },
+      // exemplo para carregar lancamentos
+      //this.client.publish.bind(this.client, 'financeiro/lancamento/contas/carregar/', this.state.conta)
+    );
+  }
+
+  topicLancamentoContasCarregado(msg) {
+    // exemplo para carregar lancamentos
+  }
+
+  topicLancamentoContasErro(msg) {
     alert('Erro: ' + msg);
   }
 
   handleIncluir() {
-    this.setState({ valor: parseFloat((this.state.valor && this.state.valor.replace(',', '-').replace('.', '').replace('-', '.')) || 0)}, this.enviar)
+    //console.log(JSON.stringify(this.state, null, 2));
+
+    this.client.publish(
+      'financeiro/lancamento/contas/incluir/' + clientId, 
+      JSON.stringify(
+        { 
+          _id: uuid.v4(),
+          conta: this.state.conta._id,
+          data: this.state.data,
+          cheque: this.state.cheque,
+          liquidado: this.state.liquidado,
+          operacao: this.state.operacao,
+          valor: parseFloat((this.state.valor && this.state.valor.replace(',', '-').replace('.', '').replace('-', '.')) || 0),
+          observacao: this.state.observacao,
+        }
+      )
+    ) 
+
   } 
 
-  enviar(msg){
-    //console.log('lancamentoID: ' + clientId + '\nEnviado: \n' + JSON.stringify(omit(this.state, ['topics','contas']), null, 2));
-    // enviar dados para fila
-    this.client.publish(
-            'financeiro/lancamento/contas/incluir/' + clientId, 
-            JSON.stringify(omit(this.state, ['topics','contas']))
-          );
+  topicLancamentoContasIncluido(msg) {
+    let lancamento = JSON.parse(msg);
+
+    console.log('Lancamento:\n' + JSON.stringify(lancamento, null, 2))
+
+    let newState = { 
+      cheque: '',
+      liquidado: false,
+      operacao: false,
+      valor: '',
+      observacao: '',
+
+      conta: {
+        ...this.state.conta,
+
+        saldo: {
+          ...this.state.conta.saldo,
+          valor: this.state.conta.saldo.valor + lancamento.valor
+        }
+
+      },
+
+      contas: this.state.contas.map( conta => {
+        if (conta._id === this.state.conta._id) {
+          return ({
+            ...conta,
+            saldo: {
+              ...conta.saldo,
+              valor: conta.saldo.valor + lancamento.valor
+            }
+          })
+        } else {
+          return conta;
+        }
+      })
+
+    }
+
+    console.log('Novo estado:\n' + JSON.stringify(newState, null, 2));
+
+    this.setState(newState)
+   //alert('Lancamento feito com sucesso#: ' + msg);
+   //this.props.onClose && this.props.onClose();
   }
 
   console_log(msg) {
@@ -172,33 +285,14 @@ export default class LancamentoForm extends Component {
     })
   }
 
-  handleSaveOk(msg) {
-   //alert('Lancamento feito com sucesso#: ' + msg);
-   this.props.onClose && this.props.onClose();
-  }
-
-  handleIncluido(msg) {
-    let contas = JSON.parse(msg);
-    if (this.state.conta) {
-      this.setState({contas: contas});  
-    } else {
-      Array.isArray(contas) && 
-      contas.length && 
-      this.setState({contas: contas, conta: contas[0]._id});
-    }
-    
-    //alert('aqui: ' + msg);
-  }
-
   handleContaChange(element) {
-    this.setState({conta: element.target.value}, this.carregaLista);
-    //this.client.publish('financeiro/cadastro/contas/carregar/',JSON.stringify('Calcular ' + this.state.conta));
-  }
-
-  carregaLista() {
-    // enviar dados para fila
-    this.client.publish('financeiro/lancamento/contas/carregar/',JSON.stringify(this.state.conta));
-    console.log('Conta selecionada: ' + this.state.conta);
+    this.setState(
+      {
+        conta: this.state.contas.find( conta => conta._id === element.target.value )
+      },
+      console.log.bind(this, JSON.stringify(this.state, null, 2))
+    );
+    ;
   }
 
   handleChangeValor(event) {
@@ -231,16 +325,17 @@ export default class LancamentoForm extends Component {
         return 'error';
     }
   }
-//date regula EXPRESSION /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[012])\/(201[7-9]|202[0-9])$/;
+
+  //date regula EXPRESSION /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[012])\/(201[7-9]|202[0-9])$/;
   ChequeValidationState() {
     var regex = /^\$?[0-9]+((\-[0-9][0-9])|(\-[0-9]))?$/; 
     const length = this.state.cheque.length;
     if ((length===0)){
-        return 'warning';
+      return 'warning';
     } else if(regex.test(this.state.cheque)&&(length<20)) {
         return 'success';
     } else {
-        return 'error';
+      return 'error';
     }
   }
 
@@ -273,6 +368,8 @@ export default class LancamentoForm extends Component {
 
   render() {
 
+    let saldo = this.state.conta && this.state.conta.saldo ? this.state.conta.saldo.valor : 0;
+
     return (
       <Grid>
         <Row>
@@ -286,9 +383,9 @@ export default class LancamentoForm extends Component {
                   <Col md={6} >
                       <FormGroup controlId="formControlsSelect">
                         <ControlLabel>Seleciona a conta</ControlLabel>
-                        <FormControl componentClass="select" placeholder="Bancos + Contas" value={this.state.conta} onChange={this.handleContaChange} >
-                        {this.state.contas.map( (c) =>
-                          <option key={c._id} value={c._id}>{c.banco + ' ' + c.conta}</option>
+                        <FormControl componentClass="select" placeholder="Bancos + Contas" value={this.state.conta ? this.state.conta._id : 0} onChange={this.handleContaChange} >
+                        {this.state.contas.map( (conta) =>
+                          <option key={conta._id} value={conta._id}>{conta.banco + ' ' + conta.conta}</option>
                         )}
                         </FormControl>
                       </FormGroup>
@@ -296,7 +393,7 @@ export default class LancamentoForm extends Component {
                   <Col md={6} >
                       <FormGroup>
                           <ControlLabel>Saldo Atual</ControlLabel>
-                          <FormControl disabled type="text" value={this.state.conta} />
+                          <FormControl disabled type="text" value={saldo.toFixed(2).replace('.', ',')} />
                       </FormGroup>
                   </Col>
                 </Row>
@@ -347,26 +444,29 @@ export default class LancamentoForm extends Component {
                       </div>
                     </FormGroup>
                   </Col>
-                  <Col xs={12} md={2} mdOffset={2}>
-                        <Button
-                          bsStyle="danger"
-                          onClick={this.props.onClose}
-                        >
-                          <div><Glyphicon glyph="remove" /><span>    Cancelar</span></div>
-                        </Button>
-                  </Col>
                 </Row>
 
                 <Row>
-                  <Col xs={12} md={1}>OBS </Col>
-                  <Col xs={12} md={7}>
+                  <Col xs={12} md={1}>OBS</Col>
+                  <Col xs={12} md={11}>
                     <FormGroup controlId="observacao" validationState={this.OBSValidationState()}>
                       {/*<ControlLabel>Input with success and feedback icon</ControlLabel>*/}
                       <FormControl type="text" ref="observacao" value={this.state.observacao} onChange={this.handleChangeObs} />
                       <FormControl.Feedback />
                     </FormGroup>
                   </Col>
-                  <Col xs={12} md={2} mdOffset={2}>
+                </Row>
+
+                <Row>
+                  <Col xs={12} md={12} style={{textAlign: 'right'}} >
+                        <Button
+                          bsStyle="danger"
+                          onClick={this.props.onClose}
+                          style={{marginRight: 20}}
+                        >
+                          <div><Glyphicon glyph="remove" /><span>    Cancelar</span></div>
+                        </Button>
+
                         <Button bsStyle="success" onClick={this.handleIncluir} 
                           disabled={
                             (this.ValorValidationState() === 'error')|| 
