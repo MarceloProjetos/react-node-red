@@ -415,6 +415,11 @@ Point a browser back at the server's port 1880 and verify that Node-RED is back 
     
 [Reference for more information][15]
 
+**Make node-red update**
+
+    npm cache clean
+    npm update -g --unsafe-perm node-red
+
 **Restore a FLOW**
 
 To restore a node-red flow with Ctrl-I command or the menu, "Menu > Import > Clipboard".
