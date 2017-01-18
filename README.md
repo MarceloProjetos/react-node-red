@@ -501,8 +501,8 @@ You need to make a key with this commnand and put your **password**:
 Now save result number and edit the file settings.js again.
 
  ```sh
- /**
- * Copyright 2013, 2016 IBM Corp.
+/**
+ * Copyright JS Foundation and other contributors, http://js.foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -550,12 +550,23 @@ module.exports = {
     // The maximum length, in characters, of any message sent to the debug sidebar tab
     debugMaxLength: 1000,
 
+    // Colourise the console output of the debug node
+    //debugUseColors: true,
+
     // The file containing the flows. If not set, it defaults to flows_<hostname>.json
     //flowFile: 'flows.json',
 
     // To enabled pretty-printing of the flow within the flow file, set the following
     //  property to true:
     //flowFilePretty: true,
+
+    // By default, credentials are encrypted in storage using a generated key. To
+    // specify your own secret, set the following property.
+    // If you want to disable encryption of credentials, set this property to false.
+    // Note: once you set this property, do not change it - doing so will prevent
+    // node-red from being able to decrypt your existing credentials and they will be
+    // lost.
+    //credentialSecret: "a-secret-key",
 
     // By default, all user data is stored in the Node-RED install directory. To
     // use a different location, the following property can be used
@@ -585,6 +596,14 @@ module.exports = {
     // that should be served at http://localhost:1880/.
     //httpStatic: '/home/nol/node-red-static/',
 
+    // The maximum size of HTTP request that will be accepted by the runtime api.
+    // Default: 5mb
+    //apiMaxLength: '5mb',
+
+    // If you installed the optional node-red-dashboard you can set it's path
+    // relative to httpRoot
+    //ui: { path: "ui" },
+
     // Securing Node-RED
     // -----------------
     // To password protect the Node-RED editor and admin API, the following
@@ -598,7 +617,7 @@ module.exports = {
         }]
     },
 
-    // To password protect the node-defined HTTP endpoints (httpNodeRoot), or 
+    // To password protect the node-defined HTTP endpoints (httpNodeRoot), or
     // the static content (httpStatic), the following properties can be used.
     // The pass field is a bcrypt hash of the password.
     // See http://nodered.org/docs/security.html#generating-the-password-hash
@@ -615,6 +634,10 @@ module.exports = {
     //    key: fs.readFileSync('privatekey.pem'),
     //    cert: fs.readFileSync('certificate.pem')
     //},
+
+    // The following property can be used to cause insecure HTTP connections to
+    // be redirected to HTTPS.
+    //requireHttps: true
 
     // The following property can be used to disable the editor. The admin API
     // is not affected by this option. To disable both the editor and the admin
@@ -641,9 +664,10 @@ module.exports = {
     // in front of all http in nodes. This allows custom authentication to be
     // applied to all http in nodes, or any other sort of common request processing.
     //httpNodeMiddleware: function(req,res,next) {
-    //   // Handle/reject the request, or pass it on to the http in node
-    //   // by calling next();
-    //   next();
+    //    // Handle/reject the request, or pass it on to the http in node by calling next();
+    //    // Optionally skip our rawBodyParser by setting this to true;
+    //    //req.skipRawBodyParser = true;
+    //    next();
     //},
 
     // Anything in this hash is globally available to all functions.
