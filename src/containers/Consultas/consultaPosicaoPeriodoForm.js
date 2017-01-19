@@ -4,7 +4,6 @@ import React, { Component } from 'react';
 import { 
   OverlayTrigger, 
   Button,
-  Alert, 
   Glyphicon,
   DropdownButton,
   ControlLabel, 
@@ -19,9 +18,6 @@ import {
 } from 'react-bootstrap';
 import DatePicker from 'react-bootstrap-date-picker';
 import {BootstrapTable, TableHeaderColumn} from 'react-bootstrap-table';
-
-import EditarLancamentoForm    from '../../containers/Lancamentos/editarLancamentoForm';
-import ExcluirLancamentoForm   from '../../containers/Lancamentos/excluirLancamentoForm';
 
 import { assign, omit } from 'lodash';
 import mqtt from 'mqtt/lib/connect';
@@ -62,20 +58,16 @@ export default class LancamentoForm extends Component {
       labelConferir: 'Á conferir',
     };
 
-    this.handleClick    = this.handleClick.bind(this);
-
     this.handleSave     = this.handleSave.bind(this);
     this.handleSearch   = this.handleSearch.bind(this);
-
     this.handleError    = this.handleError.bind(this);
     this.handleIncluido = this.handleIncluido.bind(this);
     this.handleSaveOk   = this.handleSaveOk.bind(this);
-
     this.handleConferir = this.handleConferir.bind(this);
   }
 
   carregaListas() {
-    // enviar dados para fila
+    // enviar dados para node-red carregar fila
     this.client.publish('financeiro/consulta/posicao/periodo/',JSON.stringify('Carregar lista '));
   }
 
@@ -232,57 +224,6 @@ export default class LancamentoForm extends Component {
     this.setState({conferir: conferir, labelConferir: conferir ? 'Todos' : 'Á conferir'})
   }
 
-
-  handleClick(e) {
-    switch(e) {
-      case 'Editar':
-        this.setState(
-          {
-            form: 
-              <EditarLancamentoForm 
-                clientId={lancamentosId}
-                title="Editar Conta cadastrada"
-                onClose={this.handleClose.bind(this)} 
-                record={this.state.conta}
-                config={this.props.config} 
-              >
-                  <span>Algo deu errado para achar o form EditarContas</span>
-              </EditarLancamentoForm> 
-          }
-        )
-        break;
-      case 'Delete':
-        this.setState(
-          {
-            form: 
-              <ExcluirLancamentoForm 
-                clientId={lancamentosId}
-                title="Deletar esta Conta ?"
-                onClose={this.handleClose.bind(this)} 
-                record={this.state.conta} 
-                config={this.props.config} 
-              >
-                  <span>Algo deu errado para achar o form ExcluirContas</span>
-              </ExcluirLancamentoForm> 
-          }
-        )
-        break;
-      default:
-        this.handleClose(this); 
-        this.setState({
-          form: 
-          <div>
-            <Alert bsStyle="danger" style={{margin: 200}} >
-            <h4>Impossivel mas entramos no "default" do case principal!</h4>
-              <p>Alguma coisa muito errada aconteceu, avise o responsavel.</p>
-              <p>
-                <Button onClick={this.handleClose}>Ok</Button>
-              </p>
-            </Alert>
-          </div>
-        });
-    }
-  }
 
   onRowSelect(row, isSelected){
     console.log(row);
