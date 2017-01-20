@@ -55,9 +55,7 @@ export default class LancamentoForm extends Component {
     this.handleCheckboxChange = this.handleCheckboxChange.bind(this);
     this.handleChangeValor  = this.handleChangeValor.bind(this);
     this.handleChangeObs    = this.handleChangeObs.bind(this);
-
     this.handleIncluir      = this.handleIncluir.bind(this);
-
     this.console_log        = this.console_log.bind(this);
     this.handleContaChange  = this.handleContaChange.bind(this);
   }
@@ -103,7 +101,7 @@ export default class LancamentoForm extends Component {
                   }
                 )
               },
-              this.client.publish.bind(this.client, 'financeiro/cadastro/contas/carregar/')
+              this.client.publish.bind(this.client, 'financeiro/cadastro/contas/carregar/',JSON.stringify('Carregar lancamentos inclusao'))
             ) 
           : 
             alert('Erro ao se inscrever no topico:' + err);
@@ -216,7 +214,6 @@ export default class LancamentoForm extends Component {
         }
       )
     ) 
-
   } 
 
   topicLancamentoContasIncluido(msg) {
@@ -289,24 +286,13 @@ export default class LancamentoForm extends Component {
       {
         conta: this.state.contas.find( conta => conta._id === element.target.value )
       },
-      console.log.bind(this, JSON.stringify(this.state, null, 2))
+      //console.log.bind(this, JSON.stringify(this.state, null, 2))
     );
-    ;
   }
 
   handleChangeValor(event) {
     this.setState({ valor: event.target.value.substring(3) })
   }
-
-  /* <div id="services"> {services}
-                        <p id="total">Total <b>R$ {this.state.total.toFixed(2).replace('.', ',')}</b></p>
-  </div>
-
-  render: function(){
-        return  <p className={ this.state.active ? 'active' : '' } onClick={this.clickHandler}>
-                    {this.props.name} <b>R$ {this.props.price.toFixed(2).replace('.', ',')}</b>
-                </p>;
-                */
 
   handleChangeCheque(event) {
     this.setState({ cheque: event.target.value })
