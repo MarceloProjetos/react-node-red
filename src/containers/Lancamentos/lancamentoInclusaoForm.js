@@ -12,7 +12,6 @@ import {
   ControlLabel,
   Checkbox,
 } from 'react-bootstrap';
-
 import DatePicker from 'react-bootstrap-date-picker';
 
 import uuid from 'node-uuid';

@@ -22,7 +22,7 @@ import {BootstrapTable, TableHeaderColumn} from 'react-bootstrap-table';
 import { assign, omit } from 'lodash';
 import mqtt from 'mqtt/lib/connect';
 
-const lancamentosId = 'mqtt_lan' + (1 + Math.random() * 4294967295).toString(16);
+//const clientId = 'mqtt_lan' + (1 + Math.random() * 4294967295).toString(16);
 const BrazilianDayLabels = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'];
 const BrazilianMonthLabels = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Octubro', 'Novembro', 'Dezembro'];
 
@@ -40,7 +40,7 @@ export default class LancamentoForm extends Component {
     console.log('data = ' + datetime);
 
     this.state = { 
-      _id:        null, 
+      _id:        0, 
       conta:      0,// conta selecionada
       data:       new Date().toISOString(),
       cheque:     "",
@@ -82,7 +82,7 @@ export default class LancamentoForm extends Component {
       retain: false,
       clean: true,
       keepAlive: 30, // 30 sec.
-      clientId: lancamentosId
+      clientId: this.props.clientId
     }
 
     this.client = mqtt.connect(opts);
@@ -90,9 +90,9 @@ export default class LancamentoForm extends Component {
     this.client.on('connect', function() {
 
       this.client.subscribe(
-        ['financeiro/lancamento/contas/erros/'   + lancamentosId, 
+        ['financeiro/lancamento/contas/erros/'   + this.props.clientId, 
         'financeiro/lancamento/contas/carregado/', 
-        'financeiro/lancamento/contas/incluido/' + lancamentosId], 
+        'financeiro/lancamento/contas/incluido/' + this.props.clientId], 
          function(err, granted) { 
           !err ? 
             this.setState(
@@ -122,7 +122,7 @@ export default class LancamentoForm extends Component {
       this.state.topics[topic] && this.state.topics[topic](message.toString()); 
 
     }.bind(this))
-    console.log('Lancamento = ' + lancamentosId );
+    console.log('Lancamento = ' + this.props.clientId );
   }
 
   componentWillUnmount() {
@@ -144,7 +144,7 @@ export default class LancamentoForm extends Component {
     //console.log('lancamentoID: ' + clientId + '\nEnviado: \n' + JSON.stringify(omit(this.state, ['topics','contas']), null, 2));
     // enviar dados para fila
     this.client.publish(
-            'financeiro/consulta/posicao/periodo/' + lancamentosId, 
+            'financeiro/consulta/posicao/periodo/' + this.props.clientId, 
             JSON.stringify(omit(this.state, ['topics','contas']))
           );
   }
@@ -179,7 +179,7 @@ export default class LancamentoForm extends Component {
           {topics: assign(this.state.topics, {[granted[0].topic]: this.handleSaveOk})},
           this.client.publish.bind(
             this.client, 
-            'financeiro/consulta/alterar/' + this.props.lancamentosId, 
+            'financeiro/consulta/alterar/' + this.props.clientId, 
             JSON.stringify(omit(this.state, 'topics'))
           )  
         );
