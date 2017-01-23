@@ -895,6 +895,12 @@ On windows with file.bat
 On linux
     
     https://www.vivaolinux.com.br/dica/Colocando-script-na-inicializacao-do-Linux-(Ubuntu-Debian)
+    
+** GIT Ubuntu **
+    
+    git commit -a
+    git push origin master
+
 
 ## Table of UI Components
 
