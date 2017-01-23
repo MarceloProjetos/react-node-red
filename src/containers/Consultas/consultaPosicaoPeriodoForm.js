@@ -185,9 +185,14 @@ export default class LancamentoForm extends Component {
         }),
 
       },
-      // exemplo para carregar lancamentos
-      this.client.publish.bind(this.client, 'financeiro/lancamento/contas/carregar/',JSON.stringify('Saldo Carregado'), this.state.conta)
+      this.showState.bind(this)  
     );
+  }
+
+  showState() {
+    console.log('------------------> Estado Mudou <-----------------------------\n' + JSON.stringify(this.state, null, 2) + '\n---------------------------------------------------------------\n')
+    // exemplo para carregar lancamentos
+    this.client.publish('financeiro/lancamento/contas/carregar/')
   }
 
   topicLancamentoContasCarregado(msg) {
@@ -307,6 +312,8 @@ export default class LancamentoForm extends Component {
   handleConferir(conferir) {
     console.log('A conferir: ' + conferir);
     this.setState({conferir: conferir, labelConferir: conferir ? 'Todos' : 'Á conferir'})
+    // enviar dados para fila
+    this.client.publish('financeiro/lancamento/contas/consultar/',JSON.stringify(conferir));
   }
 
 
