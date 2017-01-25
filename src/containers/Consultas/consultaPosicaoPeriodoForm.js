@@ -37,7 +37,14 @@ export default class LancamentoForm extends Component {
 
     this.state = { 
       _id:        0, 
-      conta:      0,// conta selecionada
+      conta:      {
+        "_id": "",
+        "selecionada": false,
+        "banco": "",
+        "conta": "",
+        "agencia": "",
+        "descricao": "",
+      },// conta selecionada
       data:       new Date().toISOString(),
       cheque:     "",
       liquidado:  false,
@@ -59,6 +66,7 @@ export default class LancamentoForm extends Component {
     this.handleConferir     = this.handleConferir.bind(this);
     this.console_log        = this.console_log.bind(this);
     this.handleContaChange  = this.handleContaChange.bind(this);
+    this.handleChangeData = this.handleChangeData.bind(this)
   }
 
   componentWillMount() {
@@ -149,7 +157,7 @@ export default class LancamentoForm extends Component {
         conta: conta,
         contas: contas
       }, 
-      conta && this.client.publish.bind(this.client, 'financeiro/lancamento/contas/saldo/carregar/', )
+      conta && this.client.publish.bind(this.client, 'financeiro/lancamento/contas/saldo/carregar/',JSON.stringify('Lancamento') )
     );  
   }
 
@@ -192,7 +200,7 @@ export default class LancamentoForm extends Component {
   showState() {
     console.log('------------------> Estado Mudou <-----------------------------\n' + JSON.stringify(this.state, null, 2) + '\n---------------------------------------------------------------\n')
     // exemplo para carregar lancamentos
-    this.client.publish('financeiro/lancamento/contas/carregar/')
+    //this.client.publish('financeiro/lancamento/contas/carregar/')
   }
 
   topicLancamentoContasCarregado(msg) {
@@ -281,10 +289,12 @@ export default class LancamentoForm extends Component {
   handleChangeData(data) {
     //var hiddenInputElement = document.getElementById("DATA");
     //console.log(hiddenInputElement.getAttribute('data-formattedvalue'));
-    var isodate = data;
-    console.log('datetime = ' + isodate);
+    let isodate = new Date(data);
+    let x = (isodate.getHours() * 60 * 60 * 1000) + (isodate.getMinutes() * 60 * 1000) + (isodate.getTimezoneOffset() * 60 * 1000);
+    isodate.setTime(isodate.getTime() - x );
+    console.log('data: ' + isodate.toISOString())
     this.setState({ 
-      data: isodate
+      data: isodate.toISOString()
     })
   }
 
@@ -298,22 +308,39 @@ export default class LancamentoForm extends Component {
   }
 
   mostraContaSelecionada() {
-    console.log('Conta selecionada: ' + this.state.conta);
+    console.log('Conta selecionada: ' + this.state.conta.conta);
   }
 
-  handleConferirData() {
-    console.log('A conferir Data');
+  handleConferirData(data) {
+  var isodate = data;
+  console.log('A conferir Data = ' + isodate);
+  this.setState({ 
+      data: isodate
+    })
   }
+  
 
   handleSearch() {
-    console.log('Procurar...');
+    console.log(JSON.stringify({
+        conta: this.state.conta.conta,
+        conferir: this.state.conferir,
+        data: this.state.data,
+      }));
+    this.client.publish(
+      'financeiro/lancamento/contas/consultar/',
+      JSON.stringify({
+        conta: this.state.conta.conta,
+        conferir: this.state.conferir,
+        data: this.state.data,
+      })
+    );
   }
 
   handleConferir(conferir) {
     console.log('A conferir: ' + conferir);
     this.setState({conferir: conferir, labelConferir: conferir ? 'Todos' : 'Á conferir'})
     // enviar dados para fila
-    this.client.publish('financeiro/lancamento/contas/consultar/',JSON.stringify(conferir));
+    this.client.publish('financeiro/lancamento/contas/consultar/',JSON.stringify(this.state.labelConferir));
   }
 
 
@@ -369,7 +396,7 @@ export default class LancamentoForm extends Component {
                       {this.state.conferir ?
                         <FormGroup controlId="dataConferir" validationState="success">
                           <ControlLabel>Data inicial</ControlLabel>
-                          <DatePicker id="dataConferir" ref="dataConferir" dayLabels={BrazilianDayLabels} monthLabels={BrazilianMonthLabels} value={this.state.emissao} onChange={this.handleConferirData} />
+                          <DatePicker id="dataConferir" ref="dataConferir" dayLabels={BrazilianDayLabels} monthLabels={BrazilianMonthLabels} value={this.state.data} onChange={this.handleChangeData} />
                         </FormGroup>
                       : null }
                   </Col>
