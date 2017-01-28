@@ -36,7 +36,7 @@ export default class App extends Component {
       clientId: 'Financeiro_' + (1 + Math.random() * 4294967295).toString(16),
       form: null,
       config: {
-        host: 'localhost',
+        host: '192.168.1.43',
         port: 61614,
         protocol: 'ws'
       }

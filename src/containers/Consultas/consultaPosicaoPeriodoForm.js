@@ -21,7 +21,7 @@ import uuid from 'node-uuid';
 
 import {BootstrapTable, TableHeaderColumn} from 'react-bootstrap-table';
 
-import { assign} from 'lodash';
+import { assign, omit } from 'lodash';
 import mqtt from 'mqtt/lib/connect';
 
 //const clientId = 'mqtt_lan' + (1 + Math.random() * 4294967295).toString(16);
@@ -318,21 +318,22 @@ export default class LancamentoForm extends Component {
       data: isodate
     })
   }
-  
 
   handleSearch() {
-    console.log(JSON.stringify({
+    let conta = omit(
+      {
         conta: this.state.conta.conta,
         conferir: this.state.conferir,
-        data: this.state.data,
-      }));
+        data: this.state.data
+      }, 
+      this.state.conferir ? null : 'data'
+    )
+
+    console.log(JSON.stringify(conta, null, 2));
+
     this.client.publish(
       'financeiro/lancamento/contas/consultar/',
-      JSON.stringify({
-        conta: this.state.conta.conta,
-        conferir: this.state.conferir,
-        data: this.state.data,
-      })
+      JSON.stringify(conta)
     );
   }
 
@@ -417,7 +418,6 @@ export default class LancamentoForm extends Component {
                         </Button>
 
                     </OverlayTrigger>
-
 
                   </Col>
                 </Row>
