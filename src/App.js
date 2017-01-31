@@ -28,6 +28,26 @@ import CalculoPrevisao    from './containers/Consultas/consultaCalculoForm';
 import PosicaoBancaria    from './containers/Consultas/consultaPosicaoBancariaForm';
 import PosicaoPeriodo     from './containers/Consultas/consultaPosicaoPeriodoForm';
 
+//Restaura hora
+Date.prototype.fromUTC = function() {
+  let date = this.toISOString();
+  if (!this.getUTCHours() && !this.getUTCMinutes() && !this.getUTCSeconds() && !this.getUTCMilliseconds()) {
+    this.setTime(this.getTime() + (this.getTimezoneOffset() * 60 * 1000))
+  } 
+  console.log(`from UTC: ${date}, to locale: ${this.toISOString()}`)
+  return this;
+}
+
+//converte para isodate com horario em 0:0:000
+Date.prototype.toUTC = function() {
+  let date = this.toISOString();
+  if (this.getUTCHours() || this.getUTCMinutes() || this.getUTCSeconds() || this.getUTCMilliseconds()) {
+    this.setTime(this.getTime() - ((this.getHours() * 60 * 60 * 1000) + (this.getMinutes() * 60 * 1000) + (this.getSeconds() * 1000) + this.getMilliseconds() + (this.getTimezoneOffset() * 60 * 1000)) )
+  }
+  console.log(`from locale: ${date}, to UTC: ${this.toISOString()}`)
+  return this;
+}
+
 export default class App extends Component {
   constructor(props) {
     super(props);
@@ -36,7 +56,7 @@ export default class App extends Component {
       clientId: 'Financeiro_' + (1 + Math.random() * 4294967295).toString(16),
       form: null,
       config: {
-        host: '192.168.1.43',
+        host: '192.168.0.169',
         port: 61614,
         protocol: 'ws'
       }

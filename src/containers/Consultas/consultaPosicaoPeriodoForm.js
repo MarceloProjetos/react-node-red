@@ -289,12 +289,8 @@ export default class LancamentoForm extends Component {
   handleChangeData(data) {
     //var hiddenInputElement = document.getElementById("DATA");
     //console.log(hiddenInputElement.getAttribute('data-formattedvalue'));
-    let isodate = new Date(data);
-    let x = (isodate.getHours() * 60 * 60 * 1000) + (isodate.getMinutes() * 60 * 1000) + (isodate.getTimezoneOffset() * 60 * 1000);
-    isodate.setTime(isodate.getTime() - x );
-    console.log('data: ' + isodate.toISOString())
     this.setState({ 
-      data: isodate.toISOString()
+      data: new Date(data).toUTC().toISOString()
     })
   }
 
@@ -313,7 +309,7 @@ export default class LancamentoForm extends Component {
 
   handleConferirData(data) {
   var isodate = data;
-  console.log('A conferir Data = ' + isodate);
+  //console.log('A conferir Data = ' + isodate);
   this.setState({ 
       data: isodate
     })
@@ -322,14 +318,14 @@ export default class LancamentoForm extends Component {
   handleSearch() {
     let conta = omit(
       {
-        conta: this.state.conta.conta,
+        conta: this.state.conta._id,
         conferir: this.state.conferir,
         data: this.state.data
       }, 
       this.state.conferir ? null : 'data'
     )
 
-    console.log(JSON.stringify(conta, null, 2));
+    //console.log(JSON.stringify(conta, null, 2));
 
     this.client.publish(
       'financeiro/lancamento/contas/consultar/',
@@ -338,10 +334,10 @@ export default class LancamentoForm extends Component {
   }
 
   handleConferir(conferir) {
-    console.log('A conferir: ' + conferir);
+    //console.log('A conferir: ' + conferir);
     this.setState({conferir: conferir, labelConferir: conferir ? 'Todos' : 'Á conferir'})
     // enviar dados para fila
-    this.client.publish('financeiro/lancamento/contas/consultar/',JSON.stringify(this.state.labelConferir));
+    //this.client.publish('financeiro/lancamento/contas/consultar/',JSON.stringify(this.state.labelConferir));
   }
 
 

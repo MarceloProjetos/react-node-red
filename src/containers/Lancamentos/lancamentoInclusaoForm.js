@@ -26,18 +26,13 @@ export default class LancamentoForm extends Component {
   constructor(props) {
     super(props);
 
-    let d = new Date();
-    let datetime = d.getFullYear() + "-"
-                + ("0" + (d.getMonth()+1)).slice(-2) + "-" 
-                + ("0" + (d.getDate())).slice(-2)  + "T"  
-                + d.getHours() + ":"  
-                + d.getMinutes() + ":00.000Z";
-    console.log('data = ' + datetime);
+    let d = new Date().toUTC().toISOString();
+    
 
     this.state = { 
       _id:        null,
       conta:      null, // conta selecionada
-      data:       datetime,
+      data:       d,
       cheque:     '',
       liquidado:  false,
       operacao:   '',
@@ -135,7 +130,7 @@ export default class LancamentoForm extends Component {
     let contas = JSON.parse(msg);
     let conta = Array.isArray(contas) && contas.length ? contas[0] : {
       "_id": "",
-      "selecionada": false,
+      "selecionada": "",
       "banco": "",
       "conta": "",
       "agencia": "",
@@ -205,7 +200,7 @@ export default class LancamentoForm extends Component {
         { 
           _id: uuid.v4(),
           conta: this.state.conta._id,
-          data: this.state.data,
+          data: new Date(this.state.data).toUTC().toISOString(),
           cheque: this.state.cheque,
           liquidado: this.state.liquidado,
           operacao: this.state.operacao,
@@ -224,7 +219,7 @@ export default class LancamentoForm extends Component {
     let newState = { 
       cheque: '',
       liquidado: false,
-      operacao: false,
+      operacao: lancamento.operacao,
       valor: '',
       observacao: '',
 
