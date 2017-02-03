@@ -61,7 +61,7 @@ export default class LancamentoForm extends Component {
       labelConferir: 'Á conferir',
     };
 
-    this.handleIncluir      = this.handleIncluir.bind(this);
+    this.handleSalvar      = this.handleSalvar.bind(this);
     this.handleSearch       = this.handleSearch.bind(this);
     this.handleConferir     = this.handleConferir.bind(this);
     this.console_log        = this.console_log.bind(this);
@@ -91,7 +91,7 @@ export default class LancamentoForm extends Component {
         [
           'financeiro/cadastro/contas/carregado/',
           'financeiro/lancamento/contas/erros/'   + this.props.clientId, 
-          'financeiro/lancamento/contas/incluido/' + this.props.clientId,
+          'financeiro/lancamento/contas/atualizado/' + this.props.clientId,
           'financeiro/lancamento/contas/carregado/',
           'financeiro/lancamento/contas/saldo/carregado/'
         ], 
@@ -104,7 +104,7 @@ export default class LancamentoForm extends Component {
                           {
                             [granted[0].topic]: this.topicCadastroContasCarregado.bind(this),
                             [granted[1].topic]: this.topicLancamentoContasErro.bind(this),   
-                            [granted[2].topic]: this.topicLancamentoContasIncluido.bind(this),
+                            [granted[2].topic]: this.topicLancamentoContasAtualizado.bind(this),
                             [granted[3].topic]: this.topicLancamentoContasCarregado.bind(this),
                             [granted[4].topic]: this.topicLancamentoContasSaldoCarregado.bind(this)
                           }
@@ -211,11 +211,11 @@ export default class LancamentoForm extends Component {
     alert('Erro: ' + msg);
   }
 
-  handleIncluir() {
+  handleSalvar() {
     //console.log(JSON.stringify(this.state, null, 2));
 
     this.client.publish(
-      'financeiro/lancamento/contas/incluir/' + this.props.clientId, 
+      'financeiro/lancamento/contas/atualizar/' + this.props.clientId, 
       JSON.stringify(
         { 
           _id: uuid.v4(),
@@ -231,7 +231,7 @@ export default class LancamentoForm extends Component {
     )
   }
 
-  topicLancamentoContasIncluido(msg) {
+  topicLancamentoContasAtualizado(msg) {
     let lancamento = JSON.parse(msg);
 
     console.log('Lancamento:\n' + JSON.stringify(lancamento, null, 2))
@@ -356,6 +356,8 @@ export default class LancamentoForm extends Component {
       onSelect: this.onRowSelect,
     };
 
+    let saldo = this.state.conta && this.state.conta.saldo ? this.state.conta.saldo.valor : 0;
+
     return (
       <Grid>
         <Row>
@@ -397,11 +399,11 @@ export default class LancamentoForm extends Component {
                         </FormGroup>
                       : null }
                   </Col>
-                  <Col xs={6} md={3} >
+                  <Col xs={6} md={3} style={{textAlign: 'right'}} >
 
                     <OverlayTrigger 
                       placement="top" 
-                      overlay={(<Tooltip id="tooltip">Consultar Conta</Tooltip>)}
+                      overlay={(<Tooltip id="tooltip">Nova consultar</Tooltip>)}
                     >
 
                         <Button
@@ -415,40 +417,6 @@ export default class LancamentoForm extends Component {
 
                     </OverlayTrigger>
 
-                  </Col>
-                </Row>
-
-                <Row style={{paddingTop: 20}} >
-                  <Col xs={12} md={1}>CHEQUE</Col>
-                  <Col xs={12} md={3}>
-                    <FormGroup controlId="CHEQUE" validationState="success">
-                     <FormControl type="text" ref="CHEQUE" value={this.state.cheque} onChange={this.handleChange} />
-                      <FormControl.Feedback />
-                    </FormGroup>
-                  </Col>
-                  <Col xs={12} md={1}>VALOR</Col>
-                  <Col xs={12} md={3}>
-                    <FormGroup controlId="VALOR" validationState="success">
-                     <FormControl type="text" ref="VALOR" value={this.state.valor} onChange={this.handleChange} />
-                      <FormControl.Feedback />
-                    </FormGroup>
-                  </Col>
-                  <Col xs={12} md={1}>SALDO</Col>
-                  <Col xs={12} md={3}>
-                    <FormGroup controlId="SALDO" validationState="success">
-                      <FormControl type="text" ref="SALDO" value={this.state.saldo} onChange={this.handleChange} />
-                      <FormControl.Feedback />
-                    </FormGroup>
-                  </Col>
-                </Row>
-
-                <Row>
-                  <Col xs={12} md={2}>DESCRIÇÃO</Col>
-                  <Col xs={12} md={10}>
-                    <FormGroup controlId="DESCRICAO" validationState="success">
-                      <FormControl type="text" ref="DESCRICAO" value={this.state.observacao} onChange={this.handleChange} />
-                      <FormControl.Feedback />
-                    </FormGroup>
                   </Col>
                 </Row>
 
@@ -474,6 +442,33 @@ export default class LancamentoForm extends Component {
                         </BootstrapTable>
                   </Col>
                 </Row>}
+
+                <Row style={{paddingTop: 20}} >
+
+                  <Col xs={12} md={4}>
+                      <FormGroup controlId="SALDO" validationState="success">
+                          <ControlLabel>SALDO</ControlLabel>
+                          <FormControl disabled type="text" ref="SALDO" value={saldo.toFixed(2).replace('.', ',')} />
+                      </FormGroup>
+                  </Col>
+
+                  <Col xs={12} md={8} style={{textAlign: 'right'}} >
+                  <FormControl.Static style={{paddingTop: 25}} >
+                    <Button
+                        bsStyle="danger"
+                        onClick={this.props.onClose}
+                        style={{marginRight: 20}}
+                      >
+                        <div><Glyphicon glyph="remove" /><span>    Cancelar</span></div>
+                    </Button>
+
+                      <Button bsStyle="success" onClick={this.handleSalvar} >
+                          <div><Glyphicon glyph="ok" /><span>  Confirmar</span></div>
+                      </Button>
+                  </FormControl.Static>
+                  </Col>
+                </Row>
+
             </Panel>
 
           </Col>
